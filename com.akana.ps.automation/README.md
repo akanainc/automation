@@ -167,35 +167,35 @@ These tasks are the implementation of the [Performance](http://docs.akana.com/sp
 #### Container Features
 Install the proper features.  Example property files can be located in the exampleFiles directory within the properties directory.
 
-* [Standalone PM Container](https://library.akana.com/download/attachments/12484976/Standalone_PM.properties?api=v2)
+* [Standalone PM Container](scripts/automation/properties/exampleFiles/Standalone_PM.properties?api=v2)
     * policy.manager.console
     * policy.manager.services
     * security.services
     * mongo.db (if using mongodb for analytical data)
-* [PM with CM](https://library.akana.com/download/attachments/12484976/PM_with_CM.properties?api=v2)
+* [PM with CM](scripts/automation/properties/exampleFiles/PM_with_CM.properties?api=v2)
     * Install Standalone PM
     * community.manager
     * community.manager.default.theme
     * community.manager.scheduled.jobs
     * community.manager.simple.developer.theme (If using SimpleDev)
-* [PM with CM and OAuth](https://library.akana.com/download/attachments/12484976/PM_with_CM_and_OAuth.properties?api=v2)
+* [PM with CM and OAuth](scripts/automation/properties/exampleFiles/PM_with_CM_and_OAuth.properties?api=v2)
     * Install PM with CM
     * community.manager.oauth.provider
     * oauth.provider
-* [PM with remote CM](https://library.akana.com/download/attachments/12484976/PM_with_remote_CM.properties?api=v2)
+* [PM with remote CM](scripts/automation/properties/exampleFiles/PM_with_remote_CM.properties?api=v2)
     * Install Standalone PM
     * community.manager.scheduled.jobs
     * community.manager.plugin
     * community.manager.policy.console
-* [Standalone CM](Standalone_CM.properties)
+* [Standalone CM](scripts/automation/properties/exampleFilesStandalone_CM.properties)
     * community.manager.apis
     * community.manager.default.theme
     * community.manager.simple.developer.theme (If using SimpleDev)
-* [Standalone CM with OAuth](https://library.akana.com/download/attachments/12484976/Standalone_CM_with_OAuth.properties?api=v2)
+* [Standalone CM with OAuth](scripts/automation/properties/exampleFiles/Standalone_CM_with_OAuth.properties?api=v2)
     * Install Standalone CM
     * community.manager.oauth.provider
     * oauth.provider
-* [Standalone ND](https://library.akana.com/download/attachments/12484976/Standalone_ND.properties?api=v2)
+* [Standalone ND](scripts/automation/properties/exampleFiles/Standalone_ND.properties?api=v2)
     * network.director
     * api.security.policy.handler
 * Standalone ND with OAuth
@@ -203,7 +203,7 @@ Install the proper features.  Example property files can be located in the examp
     * community.manager.oauth.provider.agent
     * oauth.provider.agent
     * [TODO] Default property file
-* [Standalone OAuth](https://library.akana.com/download/attachments/12484976/Standalone_OAuth.properties?api=v2)
+* [Standalone OAuth](scripts/automation/properties/exampleFiles/Standalone_OAuth.properties?api=v2)
     * community.manager.oauth.provider
     * oauth.provider
     * community.manager.plugin
