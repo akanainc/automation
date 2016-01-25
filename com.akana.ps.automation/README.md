@@ -1,5 +1,5 @@
 # Akana Automated Software Deployment
-![Installer](https://library.akana.com/download/attachments/12484976/header.png?api=v2)
+![Installer](images/header.png)
 
 ## Copyright
 Copyright ;copy 2016 Akana, Inc. All Rights Reserved.
