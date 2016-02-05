@@ -34,7 +34,7 @@ To run installer:
 
 * Download and copy the appropriate files to intended server (/opt/akana_sw/stage/install)
 * cd \<extracted location\>/install
-* Extract ps-automation.\<version\>.zip somewhere (unzip pso-automation.\<version\>.zip)
+* Extract ps-automation.\<version\>.zip somewhere (unzip ps-automation.\<version\>.zip)
 * vi(or favorite editor) properties/installer.properties
 * Update as needed
     * resources
@@ -60,9 +60,9 @@ All valid options are:
 ## Container Script
 To run container as standalone:
 
-* cd \<install dir\>/sm80/scripts/properties
+* cd \<install dir\>/sm8/scripts/Lib/soa/automation/properties
 * Update all property files correctly.  Delete the ones you don't want to create
-* cd ../../bin
+* cd \<install dir\>/sm8/bin
 * run ./jython.sh ../scripts/Lib/soa/automation/containerManager.py -c > createContainers.log
 
 All valid options are:
@@ -100,6 +100,36 @@ For instance, if you were creating a new database and did not want to see all of
 informational messages, you would change the databaseLogger level to INFO.  But, if there is an issue, you could set 
 this level to DEBUG and see all of the SQL statements as they are being ran.
 
+### Delete Container
+
+This feature allows a container to automatically be removed based off of a container key.  This function would be used 
+to remove containers after an update containers has been added into the cluster or a de-scaling activity.  
+
+This feature is invoked with the following steps:
+
+* cd \<install dir\>/sm8/bin
+* run ./jython.sh ../scripts/Lib/soa/automation/containerManager.py -d --hostname=\<PM hostname\> --administrator=\<Administrator to PM console\> --password=\<Administrator password\> --product=\<products, like PM\> --version=\<version of product, like 7.2.14\> --key=\<container key\> | tee /tmp/deleteContainer.log
+    * `./jython.sh ../scripts/Lib/soa/automation/containerManager.py -d --hostname=https://awspm:9900 --administrator=admin --password=password --products=PM --version=7.2.14 --key=automatedPM_7214 | tee /tmp/deleteContainer.log`
+
+This can be ran from any container in the environment.
+
+   
+## Property Files
+
+### Installer Property File
+
+```
+    #InstallSection
+    # install.path and resources.location must be absolute
+    install.path=/Users/erik.nord/Builds/8.x/automation/pm/
+    resources.location=/opt/akana_sw/stage/resources/
+    features=<Update with all desired add on features>
+```
+
+### Environment Property File
+A single environment property file is required for a given environment build out.  These are properties that will be 
+shared across all containers that exist in a given environment.
+
 #### Build Database
 The _Create Container_ process can also build the Policy Manager database. This processing is controlled by the 
 properties in the `[DatabaseSection]` part of the _Installer Property File_ shown below.
@@ -127,6 +157,8 @@ Database configuration works in the following manner:
  * database.create=true and database.recreate=false -- Call DatabaseCreate Task & fail if database exists
  * database.create=false -- Do not call DatabaseCreate Task
 * database.configure=false -- Database process is bypassed
+
+Database scripts can be completely script.  This will allow the configuration of the database configuration file, but it will ignore any upgrade scripts that are found.  If this feature is desired, add `database.run.dbscripts=false` into the environment.properties file.  This is an optional property and is not required to exist in the property file.  This will default to true if it does not exist.
 
 The following schema's can be installed into a database:
 
@@ -158,114 +190,20 @@ Specify the configuration values for this database
 | minPoolSize  |          | Minimum number of open, idle connections	     |
 | maxWait      |          | Maximum time to wait for an available connection |
 
-#### Hardening Tasks
-These tasks are the implementation of the [Hardening 2.0](http://docs.akana.com/sp/platform-hardening_2.0.html) recommendations.
-
-#### Performance Tasks
-These tasks are the implementation of the [Performance](http://docs.akana.com/sp/performance-tuning.html) recommendations.
-
-#### Container Features
-Install the proper features.  Example property files can be located in the exampleFiles directory within the properties directory.
-
-* [Standalone PM Container](scripts/automation/properties/exampleFiles/Standalone_PM.properties?api=v2)
-    * policy.manager.console
-    * policy.manager.services
-    * security.services
-    * mongo.db (if using mongodb for analytical data)
-* [PM with CM](scripts/automation/properties/exampleFiles/PM_with_CM.properties?api=v2)
-    * Install Standalone PM
-    * community.manager
-    * community.manager.default.theme
-    * community.manager.scheduled.jobs
-    * community.manager.simple.developer.theme (If using SimpleDev)
-* [PM with CM and OAuth](scripts/automation/properties/exampleFiles/PM_with_CM_and_OAuth.properties?api=v2)
-    * Install PM with CM
-    * community.manager.oauth.provider
-    * oauth.provider
-* [PM with remote CM](scripts/automation/properties/exampleFiles/PM_with_remote_CM.properties?api=v2)
-    * Install Standalone PM
-    * community.manager.scheduled.jobs
-    * community.manager.plugin
-    * community.manager.policy.console
-* [Standalone CM](scripts/automation/properties/exampleFilesStandalone_CM.properties)
-    * community.manager.apis
-    * community.manager.default.theme
-    * community.manager.simple.developer.theme (If using SimpleDev)
-* [Standalone CM with OAuth](scripts/automation/properties/exampleFiles/Standalone_CM_with_OAuth.properties?api=v2)
-    * Install Standalone CM
-    * community.manager.oauth.provider
-    * oauth.provider
-* [Standalone ND](scripts/automation/properties/exampleFiles/Standalone_ND.properties?api=v2)
-    * network.director
-    * api.security.policy.handler
-* Standalone ND with OAuth
-    * Install Standalone ND
-    * community.manager.oauth.provider.agent
-    * oauth.provider.agent
-    * [TODO] Default property file
-* [Standalone OAuth](scripts/automation/properties/exampleFiles/Standalone_OAuth.properties?api=v2)
-    * community.manager.oauth.provider
-    * oauth.provider
-    * community.manager.plugin
-+ PingFederate Support
-    * For CM and ND
-        - ping.federate.integration
-+ LaaS Support
-    * For CM nodes only
-        - community.manager.laas
-    
-* Add Monitoring to any container
-    * admin.monitoring.tool
-+ Optional Features
-    * Site Minder
-        - sitemider
-        - sitemider
-    * SAML WebSSO
-        - saml2.sso
-        - saml2.sso.ui
-    * Development Services
-        - devservices
-    * Policy Manager for IBM WebSphere DataPower
-        - pm.custom.policy
-        - pm.websphere.mq
-        - pmdp
-        - pmdp.slave.node
-        - pmdp.console.policy
-        - pmdp.malicious.pattern
-        - pmdp.oauth
-        - pmdp.schema.update
-
-### Update Features
-
-### Delete Container
-
-This feature allows a container to automatically be removed based off of a container key.  This function would be used 
-to remove containers after an update containers has been added into the cluster or a de-scaling activity.  
-
-This feature is invoked with the following steps:
-
-* cd \<install dir\>/sm80/bin
-* run ./jython.sh ../scripts/Lib/soa/automation/containerManager.py -d --hostname=\<PM hostname\> --administrator=\<Administrator to PM console\> --password=\<Administrator password\> --product=\<products, like PM\> --version=\<version of product, like 7.2.14\> --key=\<container key\> | tee /tmp/deleteContainer.log
-    * `./jython.sh ../scripts/Lib/soa/automation/containerManager.py -d --hostname=https://awspm:9900 --administrator=admin --password=password --products=PM --version=7.2.14 --key=automatedPM_7214 | tee /tmp/deleteContainer.log`
-
-This can be ran from any container in the environment.
-
-        
-## Property Files
-
-### Installer Property File
-
+#### Configure MongoDB
+MongoDB configuration is required when the feature `Akana MongoDB Support' (mongo.db) has been installed into the Policy Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the following fields with the correct values:
+  
 ```
-    #InstallSection
-    # install.path and resources.location must be absolute
-    install.path=/Users/erik.nord/Builds/8.x/automation/pm/
-    resources.location=/opt/akana_sw/stage/resources/
-    features=<Update with all desired add on features>
+    #Mongo DB Configuration
+    mongodb.thread=20
+    mongodb.enabled=false
+    mongodb.host=
+    mongodb.port=
+    mongodb.password=
+    mongodb.username=
 ```
 
-### Environment Property File
-A single environment property file is required for a given environment build out.  These are properties that will be 
-shared across all containers that exist in a given environment.
+#### Property File
 
 ```
     #InstallSection
@@ -275,6 +213,8 @@ shared across all containers that exist in a given environment.
     database.create=false
     # if database create and the database already exist, what should we do
     database.recreate=false
+    # Should the scripts run any needed dbscripts
+    database.run.dbscripts=true
     # Check the required schemas
     database.pm=true
     database.cm=true
@@ -412,17 +352,18 @@ Listeners can be created for both ND and clusters.  By default, ND will automati
 interface and port that the container was built to listen on.  For any more required listeners, ND listeners are 
 populated with `nd.listener=` and cluster listeners are populated in `cluster.listener=`.  Both of these fields are 
 comma seperated fields.  Within each of these fields they are seperated by a `:`, so to create a default http listener 
-it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias`.  
+it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias:aliasPassword`.  
 
-* The first field `default_http0`, defines the name of this listener.  
-* The second field `hostname`, defines the hostname that is hosting the ND/cluster container.  
-* The third field is the port that is listening for that container.  
-* The next field is the protocol, this needs to be either 'http' or 'https'. 
-* The next field is the idle timeout of the listener, the default value is '1800000'.
-* The next field is the max number of connections allowed, the default value is '100'.
-* The next field is the minimum number of connections that always remain, the value default is '5'.
-* The next field is the bind to all interfaces, this needs to be either 'true' or 'false'.
-* The next field is the alias to a certificate that is in the `container.secure.keystore`/
+* Name: `default_http0`, defines the name of this listener.  
+* Hostname: `hostname`, defines the hostname that is hosting the ND/cluster container.  
+* Port: the port that is listening for that container.  
+* Protocol: the protocol, this needs to be either 'http' or 'https'. 
+* Timeout: the idle timeout of the listener, the default value is '1800000'.
+* Max connections: the max number of connections allowed, the default value is '100'.
+* Minimum connections: the minimum number of connections that always remain, the value default is '5'.
+* Bind: the bind to all interfaces, this needs to be either 'true' or 'false'.
+* Alias: the alias to a certificate that is in the `container.secure.keystore`.
+* Alias password: the alias password is an optional field and is only required if the certificate has a password that is different than the containing keystore.
 
 When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be 
 added into a custom JKS and provided to the automation scripts.  The property files used for these certificates are 
@@ -436,6 +377,171 @@ building a container.  This is mostly recommended for the Policy Manager and Com
 `--deployFiles` command line option is used to add extra files into a container deploy directory.  This is a final 
 step that occurs.  This can be used for any custom policies or route file definitions.
 
+#### Configure Container Properties
+When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs to be added into the ND container property file.
+```
+	# disable the remote usage writer in ND containers
+    remote.writer.enabled=true
+```
+
+To view all services that are deployed into any container, the jetty information servlet needs to be enabled.
+``` 
+    # com.soa.platform.jetty.cfg
+    jetty.information.servlet.enable=true
+```
+
+Add the following property if it is required that ND follows all redirects
+``` 
+    # com.soa.http.client.core.cfg ND only
+    http.client.params.handleRedirects=true
+```
+
+
+``` 
+    # com.soa.binding.http.cfg ND only
+    http.in.binding.virtualhost.endpoint.selection.enabled=false
+```
+
+
+``` 
+    # com.soa.binding.soap.cfg ND only
+    soap.in.binding.virtualhost.endpoint.selection.enabled=false
+```
+
+
+``` 
+    # com.soa.compass.settings.cfg
+    compass.engine.optimizer.schedule=true
+    compass.engine.optimizer.schedule.period=600
+```
+
+
+``` 
+    # com.soa.rollup.configuration.cfg
+    monitoring.rollup.configuration.countersForEachRun= 0
+```
+
+It is recommended that all rollups are disabled.  The rollups tables should be partitioned using database scripts.  Include the following properties to disable the rollups.
+``` 
+    # com.soa.rollup.delete.old.cfg
+    monitoring.delete.rollup.MO_ROLLUP15.enable=true
+    monitoring.delete.rollup.MO_ROLLUPDATA.enable=true
+    monitoring.delete.rollup.MO_ROLLUP_DAY.enable=true
+    monitoring.delete.rollup.MO_ROLLUP_HOUR.enable=true
+    monitoring.delete.rollup.MO_ROLL_ORG15.enable=true
+    monitoring.delete.rollup.MO_ROLL_ORG_D.enable=true
+    monitoring.delete.rollup.MO_ROLL_ORG_H.enable=true
+    monitoring.delete.usage.enable=true
+```
+
+Enable only the valid protocols that will be accepted.  Add the following property to the container property file.
+``` 
+    # com.soa.http.client.core.cfg 'SSLv3,TLSv1,TLSv1.1,TLSv1.2'
+    https.socket.factory.enabledProtocols=
+```
+
+Set the search index.
+``` 
+    # com.soa.search.cfg
+    com.soa.search.index.merge.maxSegmentSize=10000000
+```
+
+Configure the API Portal (CM) properties.
+``` 
+    # com.soa.atmosphere.console.cfg CM only
+    security.config.basicAuth=false
+    security.config.realm=atmosphere.soa.com
+    atmosphere.console.config.userDefinedScriptVersion=
+    atmosphere.default.policies=
+```
+
+#### Hardening Tasks
+These tasks are the implementation of the [Hardening 2.0](http://docs.akana.com/sp/platform-hardening_2.0.html) recommendations.
+
+#### Performance Tasks
+These tasks are the implementation of the [Performance](http://docs.akana.com/sp/performance-tuning.html) recommendations.
+
+#### Container Features
+Install the proper features.  Example property files can be located in the exampleFiles directory within the properties directory.
+
+* [Standalone PM Container](scripts/automation/properties/exampleFiles/Standalone_PM.properties?api=v2)
+    * policy.manager.console
+    * policy.manager.services
+    * security.services
+    * mongo.db (if using mongodb for analytical data)
+* [PM with CM](scripts/automation/properties/exampleFiles/PM_with_CM.properties?api=v2)
+    * Install Standalone PM
+    * community.manager
+    * community.manager.default.theme
+    * community.manager.scheduled.jobs
+    * community.manager.simple.developer.theme (If using SimpleDev)
+* [PM with CM and OAuth](scripts/automation/properties/exampleFiles/PM_with_CM_and_OAuth.properties?api=v2)
+    * Install PM with CM
+    * community.manager.oauth.provider
+    * oauth.provider
+* [PM with remote CM](scripts/automation/properties/exampleFiles/PM_with_remote_CM.properties?api=v2)
+    * Install Standalone PM
+    * community.manager.scheduled.jobs
+    * community.manager.plugin
+    * community.manager.policy.console
+* [Standalone CM](scripts/automation/properties/exampleFilesStandalone_CM.properties)
+    * community.manager.apis
+    * community.manager.default.theme
+    * community.manager.simple.developer.theme (If using SimpleDev)
+* [Standalone CM with OAuth](scripts/automation/properties/exampleFiles/Standalone_CM_with_OAuth.properties?api=v2)
+    * Install Standalone CM
+    * community.manager.oauth.provider
+    * oauth.provider
+* [Standalone ND](scripts/automation/properties/exampleFiles/Standalone_ND.properties?api=v2)
+    * network.director
+    * api.security.policy.handler
+* Standalone ND with OAuth
+    * Install Standalone ND
+    * community.manager.oauth.provider.agent
+    * oauth.provider.agent
+    * [TODO] Default property file
+* [Standalone OAuth](scripts/automation/properties/exampleFiles/Standalone_OAuth.properties?api=v2)
+    * community.manager.oauth.provider
+    * oauth.provider
+    * community.manager.plugin
++ PingFederate Support
+    * For CM and ND
+        - ping.federate.integration
++ LaaS Support
+    * For CM nodes only
+        - community.manager.laas
+    
+* Add Monitoring to any container
+    * admin.monitoring.tool
++ Optional Features
+    * Site Minder
+        - sitemider
+        - sitemider
+    * SAML WebSSO
+        - saml2.sso
+        - saml2.sso.ui
+    * Development Services
+        - devservices
+    * Policy Manager for IBM WebSphere DataPower
+        - pm.custom.policy
+        - pm.websphere.mq
+        - pmdp
+        - pmdp.slave.node
+        - pmdp.console.policy
+        - pmdp.malicious.pattern
+        - pmdp.oauth
+        - pmdp.schema.update
+    * Integration Services
+    	- integration.services
+    * Freemarker
+    	- freemarker.activity
+    * Header Activity
+    	- header.activity
+    * Normalize
+    	- normalize.activity
+        
+#### Property File
+
 ```
     #CommonProperties
     container.name=pm
@@ -447,6 +553,9 @@ step that occurs.  This can be used for any custom policies or route file defini
     container.admin.user=administrator
     container.admin.password=password
     container.passwords.encrypted=false
+    container.admin.console.localhost.only=false
+    container.admin.console.restricted=false
+    container.admin.console.basicauth.enabled=true
     # Customize the container default listener settings.  This is only conducted if values exist, otherwise defualts are used.
     container.listener.minimum=
     container.listener.maximum=
@@ -456,6 +565,7 @@ step that occurs.  This can be used for any custom policies or route file defini
     container.secure.keystore=
     container.secure.storepass=
     container.secure.alias=
+    container.secure.alias.password=
     # The trusted certificates that need to be added into this containers cacerts
     container.secure.trusted.keystore=
     container.secure.trusted.storepass=
@@ -493,6 +603,7 @@ step that occurs.  This can be used for any custom policies or route file defini
     external.keystore.feature=false
     kerberos.implementation=false
     community.manager.laas=false
+    community.manager.laas.schedule.jobs=false
     ping.federate.integration=false
     mongo.db=false
     
@@ -519,6 +630,14 @@ step that occurs.  This can be used for any custom policies or route file defini
     pmdp.malicious.pattern=false
     pmdp.oauth=false
     pmdp.schema.update=false
+    # Integration Services
+    integration.services=false
+    # Freemaker
+    freemaker.activity=false
+    # Header
+    header.activity=false
+    # Normalize
+    normalize.activity=false
     
     #ConfigurationFiles
     database.configure=true
@@ -536,8 +655,11 @@ step that occurs.  This can be used for any custom policies or route file defini
     # if the PM admin access is different from this container, set the proper values here
     pm.admin.user=
     pm.admin.password=
+    pm.admin.basicauth=
     # If Basic Auth has been disabled for the configjob, set configjob.secured to false
     configjob.secured=true
+    # Register ND to PM
+    register.nd=true
     # all required listeners to be created for nd.  This is a comma seperated field that consistes of at least 1 entries 'listener_name:hostname:port:protocol:idleTimeout:poolMax:poolMin:bind:alias'.
     # if ND is secured, automation needs to add an endpoint to the listener.  The automation will use the 'container.secure.keystore' to search from the proper certificate for each listener
     nd.listener=
@@ -550,6 +672,40 @@ step that occurs.  This can be used for any custom policies or route file defini
     cluster.listener=
     # disable the remote usage writer in ND containers
     remote.writer.enabled=true
+    
+    # com.soa.platform.jetty.cfg ND only
+    jetty.information.servlet.enable=false
+    # com.soa.http.client.core.cfg ND only
+    http.client.params.handleRedirects=true
+    # com.soa.binding.http.cfg ND only
+    http.in.binding.virtualhost.endpoint.selection.enabled=false
+    # com.soa.binding.soap.cfg ND only
+    soap.in.binding.virtualhost.endpoint.selection.enabled=false
+    
+    # com.soa.compass.settings.cfg
+    compass.engine.optimizer.schedule=true
+    compass.engine.optimizer.schedule.period=600
+    # com.soa.rollup.configuration.cfg
+    monitoring.rollup.configuration.countersForEachRun= 0
+    # com.soa.rollup.delete.old.cfg
+    monitoring.delete.rollup.MO_ROLLUP15.enable=false
+    monitoring.delete.rollup.MO_ROLLUPDATA.enable=false
+    monitoring.delete.rollup.MO_ROLLUP_DAY.enable=false
+    monitoring.delete.rollup.MO_ROLLUP_HOUR.enable=false
+    monitoring.delete.rollup.MO_ROLL_ORG15.enable=false
+    monitoring.delete.rollup.MO_ROLL_ORG_D.enable=false
+    monitoring.delete.rollup.MO_ROLL_ORG_H.enable=false
+    monitoring.delete.usage.enable=false
+    # com.soa.http.client.core.cfg 'SSLv3,TLSv1,TLSv1.1,TLSv1.2'
+    https.socket.factory.enabledProtocols=
+    # com.soa.search.cfg
+    com.soa.search.index.merge.maxSegmentSize=10000000
+    
+    # com.soa.atmosphere.console.cfg CM only
+    security.config.basicAuth=false
+    security.config.realm=atmosphere.soa.com
+    atmosphere.console.config.userDefinedScriptVersion=
+    atmosphere.default.policies=
     
     #TenantProperties
     # CM specific properties
@@ -571,7 +727,7 @@ step that occurs.  This can be used for any custom policies or route file defini
     tenant.create=false
     
     #HardeningProperties
-    # Hardening properties are set to recommended values.  Change if desired.  For details review: http://docs.akana.com/sp/platform-hardening.html
+    # Hardening properties are set to recommended values.  Change if desired.  For details review: http://docs.akana.com/sp/platform-hardening_2.0.html
     container.harden=true
     harden.ignoreCookies=ignoreCookies
     harden.secureCookies=true
