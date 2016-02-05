@@ -158,7 +158,10 @@ Database configuration works in the following manner:
  * database.create=false -- Do not call DatabaseCreate Task
 * database.configure=false -- Database process is bypassed
 
-Database scripts can be completely script.  This will allow the configuration of the database configuration file, but it will ignore any upgrade scripts that are found.  If this feature is desired, add `database.run.dbscripts=false` into the environment.properties file.  This is an optional property and is not required to exist in the property file.  This will default to true if it does not exist.
+Database scripts can be completely script.  This will allow the configuration of the database configuration file, but it 
+will ignore any upgrade scripts that are found.  If this feature is desired, add `database.run.dbscripts=false` into the 
+environment.properties file.  This is an optional property and is not required to exist in the property file.  This will 
+default to true if it does not exist.
 
 The following schema's can be installed into a database:
 
@@ -191,7 +194,9 @@ Specify the configuration values for this database
 | maxWait      |          | Maximum time to wait for an available connection |
 
 #### Configure MongoDB
-MongoDB configuration is required when the feature `Akana MongoDB Support' (mongo.db) has been installed into the Policy Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the following fields with the correct values:
+MongoDB configuration is required when the feature `Akana MongoDB Support' (mongo.db) has been installed into the Policy 
+Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the 
+following fields with the correct values:
   
 ```
     #Mongo DB Configuration
@@ -284,9 +289,11 @@ specific environment.  So, if a PM and ND nodes are needed an a single host, it 
 container property files.
 
 For a secured container, include the secured flag as true.  If custom certificates are needed, provide 2 different 
-custom keystores.  The first keystore would be used for the container that is being built.  The trusted keystore will 
-be used for any certificates that would need to be trusted.  At the same time, the `com.soa.security` category will be 
-appropriately updated and the crl flag will be set to false in the `com.soa.crl` category.
+custom keystores.  The first keystore would be used for the container that is being built.  If the container identity
+certificate has a different password then the container keystore, provide the property 
+`container.secure.alias.password=`.  The trusted keystore will be used for any certificates that would need to be 
+trusted.  At the same time, the `com.soa.security` category will be appropriately updated and the crl flag will be set 
+to false in the `com.soa.crl` category.
 
 Only container required fields are needed in a properties file.  The automation allows property fields to be omitted.  
 The following lists what is required based off of the container type:
@@ -303,6 +310,7 @@ The following lists what is required based off of the container type:
         - database.configure
         - proxy.filename
         - route.definitions
+        - wsmex.address
     * Hardening Section 
         - container.harden
         - if container.harden is true
@@ -328,7 +336,6 @@ The following lists what is required based off of the container type:
             + harden.cm.x.frame
 + ND Only
     * Configuration Files section
-        - wsmex.address
         - org=uddi:soa.com:registryorganization
         - cluster
         - remote.writer.enabled
@@ -363,7 +370,8 @@ it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin
 * Minimum connections: the minimum number of connections that always remain, the value default is '5'.
 * Bind: the bind to all interfaces, this needs to be either 'true' or 'false'.
 * Alias: the alias to a certificate that is in the `container.secure.keystore`.
-* Alias password: the alias password is an optional field and is only required if the certificate has a password that is different than the containing keystore.
+* Alias password: the alias password is an optional field and is only required if the certificate has a password that is 
+different than the containing keystore.
 
 When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be 
 added into a custom JKS and provided to the automation scripts.  The property files used for these certificates are 
@@ -378,7 +386,8 @@ building a container.  This is mostly recommended for the Policy Manager and Com
 step that occurs.  This can be used for any custom policies or route file definitions.
 
 #### Configure Container Properties
-When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs to be added into the ND container property file.
+When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs 
+to be added into the ND container property file.
 ```
 	# disable the remote usage writer in ND containers
     remote.writer.enabled=true
@@ -421,7 +430,8 @@ Add the following property if it is required that ND follows all redirects
     monitoring.rollup.configuration.countersForEachRun= 0
 ```
 
-It is recommended that all rollups are disabled.  The rollups tables should be partitioned using database scripts.  Include the following properties to disable the rollups.
+It is recommended that all rollups are disabled.  The rollups tables should be partitioned using database scripts.  
+Include the following properties to disable the rollups.
 ``` 
     # com.soa.rollup.delete.old.cfg
     monitoring.delete.rollup.MO_ROLLUP15.enable=true
@@ -457,6 +467,17 @@ Configure the API Portal (CM) properties.
 
 #### Hardening Tasks
 These tasks are the implementation of the [Hardening 2.0](http://docs.akana.com/sp/platform-hardening_2.0.html) recommendations.
+
+During hardening it is recommended to run the admin console on a port different than the actual containers are listening
+on.  The following properties are used to move the admin console onto a different port.  The admin console can also be
+configured to listen only on the localhost interface.  To configure the admin console to use basic auth, configure
+the basic auth option to be true.
+```
+	container.admin.port=8900
+    container.admin.console.localhost.only=false
+    container.admin.console.restricted=false
+    container.admin.console.basicauth.enabled=true
+```
 
 #### Performance Tasks
 These tasks are the implementation of the [Performance](http://docs.akana.com/sp/performance-tuning.html) recommendations.
