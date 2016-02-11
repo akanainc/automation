@@ -8,10 +8,7 @@
     "email": "erik.nord@akana.com",
     "url": ""
   },
-  "files": [
-    "dist"
-  ],
-  "main": "dist/index.js",
+  "main": "index.js",
   "keywords": [
     "akana",
     "automation",
