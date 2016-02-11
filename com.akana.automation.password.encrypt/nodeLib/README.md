@@ -16,7 +16,7 @@ npm install java
 #### Run the application
 
 ```node
-node dist/index.js <text to be encrypted>
+node index.js <text to be encrypted>
 ```
 
 ## License
