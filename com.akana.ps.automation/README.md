@@ -30,6 +30,9 @@ contact for information regarding the products, programs and services that may b
 not allow the exclusion of implied warranties, so the above exclusion may not apply to you.
 
 ## Installer Script
+The installer script is used manily to install the product.  At the time of installation, the installer script can 
+create (-c) containers by invoking the container script below.
+
 To run installer:
 
 * Download and copy the appropriate files to intended server (/opt/akana_sw/stage/install)
@@ -56,8 +59,18 @@ All valid options are:
 * --filepath Path to the zip file that needs to be extracted
 * --installpath Path to the installation
 * --deployFiles is an archive file that contains any extra files to be added to a containers deploy directory
+* --overwrite is the option that will tell the installer to overwrite a directory that already exists.
+* --repository is an option to be used when the lib directory is outside of the product home.  This is useful if using a shared location, mounted drive.
+* --javaopts allows the script to override the default java options used at container startup.
 
 ## Container Script
+The container script is only responsible for creating containers.  It will create however many container property files 
+exist in the property directory.  Container property files are any property file that doesn't contain the name 
+`environment` or `default` in it.
+
+The `environment.property` file is also required in the property directory.  This file will only exist once per server, 
+no matter how many containers are being built on this image.
+
 To run container as standalone:
 
 * cd \<install dir\>/sm8/scripts/Lib/soa/automation/properties
@@ -121,9 +134,15 @@ This can be ran from any container in the environment.
 ```
     #InstallSection
     # install.path and resources.location must be absolute
-    install.path=/Users/erik.nord/Builds/8.x/automation/pm/
+    install.path=/opt/akana_sw/
     resources.location=/opt/akana_sw/stage/resources/
     features=<Update with all desired add on features>
+```
+
+if instaling multiple feature packs, the features properties would look like:
+
+```
+	features=akana-platform-8.1.39.zip,akana-pm-8.0.115.zip,akana-apiportal-8.0.0.291.zip,com.akana.devservices_8.0.0.zip,com.akana.integration.services_8.0.189684.zip,com.akana.activity.freemarker_8.0.0.zip,com.akana.activity.headers_8.0.0.zip,com.akana.activity.normalize_8.0.0.zip,com.soa.security.provider.siteminder_8.0.189684.zip,PolicyManagerForDataPower_8.0.0.zip
 ```
 
 ### Environment Property File
@@ -131,8 +150,8 @@ A single environment property file is required for a given environment build out
 shared across all containers that exist in a given environment.
 
 #### Build Database
-The _Create Container_ process can also build the Policy Manager database. This processing is controlled by the 
-properties in the `[DatabaseSection]` part of the _Installer Property File_ shown below.
+The _Create Container_ process can also build the Policy Manager and Community Manager database. This processing is controlled by the 
+properties in the `[DatabaseSection]` part of the _Environment Property File_ shown below.
 
 The scripted database build process is divided into two parts just like the database processing in the Admin Console:
 
@@ -288,12 +307,12 @@ A uniquely named container file should be provided for every container that need
 specific environment.  So, if a PM and ND nodes are needed an a single host, it would be required for 2 uniquely named 
 container property files.
 
-For a secured container, include the secured flag as true.  If custom certificates are needed, provide 2 different 
-custom keystores.  The first keystore would be used for the container that is being built.  If the container identity
-certificate has a different password then the container keystore, provide the property 
-`container.secure.alias.password=`.  The trusted keystore will be used for any certificates that would need to be 
-trusted.  At the same time, the `com.soa.security` category will be appropriately updated and the crl flag will be set 
-to false in the `com.soa.crl` category.
+For a secured container, include the secured flag as true.  Two different JAVA keystores are required for a secure 
+container.  The container keystore `container.secure.keystore` contains the container private key, the second keystore 
+`container.secure.trusted.keystore` contains the trusted certificates for all the containers and listeners in the 
+environment.  If the container identity certificate has a different password then the container keystore, provide the 
+property `container.secure.alias.password`.  At the same time, the `com.soa.security` category will be appropriately 
+updated and the crl flag will be set to false in the `com.soa.crl` category.
 
 Only container required fields are needed in a properties file.  The automation allows property fields to be omitted.  
 The following lists what is required based off of the container type:
@@ -358,8 +377,9 @@ created, the new ND container is then added into this cluster.
 Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default 
 interface and port that the container was built to listen on.  For any more required listeners, ND listeners are 
 populated with `nd.listener=` and cluster listeners are populated in `cluster.listener=`.  Both of these fields are 
-comma seperated fields.  Within each of these fields they are seperated by a `:`, so to create a default http listener 
-it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias:aliasPassword`.  
+comma seperated fields.  Within each of these fields they are separated by a `:`, so to create a default http listener 
+it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias:aliasPassword`.  The alias 
+and alias password properties are only required if an https listener is being created.
 
 * Name: `default_http0`, defines the name of this listener.  
 * Hostname: `hostname`, defines the hostname that is hosting the ND/cluster container.  
@@ -369,8 +389,8 @@ it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin
 * Max connections: the max number of connections allowed, the default value is '100'.
 * Minimum connections: the minimum number of connections that always remain, the value default is '5'.
 * Bind: the bind to all interfaces, this needs to be either 'true' or 'false'.
-* Alias: the alias to a certificate that is in the `container.secure.keystore`.
-* Alias password: the alias password is an optional field and is only required if the certificate has a password that is 
+* Alias: the alias to a key that is in the `container.secure.keystore`.
+* Alias password: the alias password is an optional field and is only required if the key has a password that is 
 different than the containing keystore.
 
 When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be 
