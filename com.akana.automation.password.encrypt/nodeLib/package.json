@@ -1,0 +1,24 @@
+{
+  "name": "password-lib",
+  "version": "0.0.1",
+  "description": "Encrypts provided text",
+  "homepage": "",
+  "author": {
+    "name": "Erik Nord",
+    "email": "erik.nord@akana.com",
+    "url": ""
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "keywords": [
+    "akana",
+    "automation",
+    "encryption"
+  ],
+  "devDependencies": {
+  },
+  "repository": "https://github.com/akanainc/automation.git",
+  "license": "Apache-2.0"
+}
