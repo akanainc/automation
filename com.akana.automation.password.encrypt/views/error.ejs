@@ -1,0 +1,16 @@
+<% layout( 'layout' ) -%>
+
+<div id="header">
+  <a href="/"><img src="/images/akana-logo_250.png" width="125px"/></a>
+
+  <h1 id="site-title"><%= siteTitle %></h1>
+</div>
+
+<div id="list">
+  <h1><%= message %></h1>
+  <h2><%= error.status %></h2>
+  <p>
+    <%= error.stack %>
+  </p>
+
+</div>

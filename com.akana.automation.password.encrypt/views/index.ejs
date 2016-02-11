@@ -1,0 +1,17 @@
+<% layout( 'layout' ) -%>
+
+<div id="header">
+    <a href="/"><img src="/images/akana-logo_250.png" width="125px"/></a>
+
+    <h1 id="site-title"><%= siteTitle %></h1>
+</div>
+
+<div id="list">
+    <form action="/encrypt" method="post" accept-charset="utf-8">
+        <div class="item-new">
+            <input class="input" type="text" name="password" placeholder="Password"/>
+            <input class="align-right" type="submit" name="create" value="Create"/>
+        </div>
+    </form>
+    <label><%= encryptedPassword %></label>
+</div>

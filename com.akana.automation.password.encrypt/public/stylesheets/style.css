@@ -1,0 +1,298 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+body {
+  line-height: 1;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+q, blockquote {
+  quotes: none;
+}
+
+q:before, q:after, blockquote:before, blockquote:after {
+  content: "";
+  content: none;
+}
+
+a img {
+  border: none;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
+  display: block;
+}
+
+body {
+  font: 14px "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+}
+
+#header {
+  color: #666666;
+  background-color: #f8f8f8;
+  font-size: 32px;
+  line-height: 1.35;
+  padding: 20px 0;
+  text-shadow: 0 1px 1px white;
+}
+
+#site-title {
+  text-align: center;
+  width: 500px;
+  float: right;
+  margin-right: 400px;
+}
+
+#page-title {
+  color: #666666;
+  background-color: #f8f8f8;
+  font-size: 25px;
+  line-height: 1.35;
+  padding: 20px 0;
+  text-align: center;
+  text-shadow: 0 1px 1px white;
+}
+
+.del-btn, .del-btn-edit {
+  display: inline;
+  float: right;
+  background: url("/images/delete.png") no-repeat bottom left;
+  font: 0/0 serif;
+  text-shadow: none;
+  color: transparent;
+  width: 16px;
+  height: 18px;
+}
+
+.del-btn-edit {
+  width: 20px;
+  height: 21px;
+}
+
+#list {
+  width: 283px;
+  margin: 0 auto;
+  padding: 20px 0 15px;
+  position: relative;
+}
+
+#item-list {
+  width: 650px;
+  margin: 0 auto;
+  padding: 20px 0 15px;
+  position: relative;
+}
+
+.align-right {
+	margin-left:192px;
+	font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+    font-size: 15px;
+    float: left;
+}
+
+.align-right-link {
+	margin-left:45px;
+	font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+    font-size: 15px;
+}
+
+.item, .item-new {
+  overflow: hidden;
+  *zoom: 1;
+  background-color: #f9f9f9;
+  border: 1px solid #eeeeee;
+  border-radius: 6px 6px 6px 6px;
+  list-style: none outside none;
+  margin: 6px 0 0;
+  padding: 8px 9px 9px;
+  position: relative;
+  text-shadow: 1px 1px 0 white;
+  width: 600px;
+}
+
+.item:hover, .item-new:hover {
+  border-color: #9be0f9;
+  box-shadow: 0 0 5px #a6d5fd;
+}
+
+.item-new {
+  padding: 4px 5px;
+  width: 258px;
+}
+
+.input, .update-input {
+  border: 1px solid #cccccc;
+  color: #666666;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  font-size: 15px;
+  padding: 3px 4px;
+  width: 248px;
+  height: 19px;
+}
+
+.input-select {
+  border: 1px solid #cccccc;
+  color: #666666;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  font-size: 15px;
+  padding: 3px 4px;
+  width: 248px;
+  height: 25px;
+}
+
+.text {
+	font-size: 15px;
+	width: 248px;
+	padding: 3px 4px;
+	font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+	border: 1px solid #cccccc;
+	color: #666666;
+}
+
+.update-input {
+  width: 220px;
+}
+
+.content {
+  color: #777777;
+  font-size: 1.2em;
+  text-shadow: 1px 1px 0 white;
+}
+
+.update-link {
+  display: inline;
+  float: left;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  color: #666666;
+  text-decoration: none;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 15em;
+  text-overflow: ellipsis;
+}
+
+.code {
+  float: left;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  color: #666666;
+  text-decoration: none;
+  overflow: hidden;
+  white-space: wrap;
+  width: 50px;
+  text-overflow: ellipsis;
+}
+
+.description {
+  float: left;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  color: #666666;
+  text-decoration: none;
+  overflow: hidden;
+  white-space: wrap;
+  width: 275px;
+  text-overflow: ellipsis;
+}
+
+.cause {
+  float: left;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  color: #666666;
+  text-decoration: none;
+  overflow: hidden;
+  white-space: wrap;
+  width: 275px;
+  text-overflow: ellipsis;
+}
+
+.update-link:hover {
+  color: #333333;
+}
+
+.update-form {
+  display: inline;
+  float: left;
+}
+
+#footer-wrap {
+  background-color: #f8f8f8;
+}
+
+#footer {
+  overflow: hidden;
+  *zoom: 1;
+  width: 210px;
+  margin: 0 auto;
+  position: relative;
+  top: 17px;
+}
+
+.footer-content {
+  display: inline;
+  float: left;
+  color: #333333;
+  font-family: Georgia;
+  padding: 0 4px;
+}
+
+#github-link {
+  color: #666666;
+  text-decoration: none;
+}
+
+#github-link:hover {
+  text-decoration: underline;
+}
+
+html, body {
+  height: 100%;
+}
+
+#layout {
+  clear: both;
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin-bottom: -48px;
+}
+
+#layout #layout-footer {
+  height: 48px;
+}
+
+#footer-wrap {
+  clear: both;
+  position: relative;
+  height: 48px;
+}
