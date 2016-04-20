@@ -2,14 +2,14 @@
 ![Installer](images/header.png)
 
 ## Copyright
-Copyright ;copy 2016 Akana, Inc. All Rights Reserved.
+Copyright &copy; 2016 Akana, Inc. All Rights Reserved.
 
 ## Trademarks
 All product and company names herein may be trademarks of their registered owners.
 Akana, SOA Software, Community Manager, API Gateway, Lifecycle Manager, OAuth Server, Policy Manager, and Cloud 
 Integration Gateway are trademarks of Akana, Inc.
 
-## Akana, Inc. (formerly SOA Software, Inc.)
+## Akana, Inc.
 Akana, Inc.
 12100 Wilshire Blvd, Suite 1800
 Los Angeles, CA 90025
@@ -18,81 +18,68 @@ www.akana.com
 info@akana.com
 
 ## Disclaimer
-The information provided in this document is provided “AS IS” WITHOUT ANY WARRANTIES OF ANY KIND INCLUDING WARRANTIES 
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT OF INTELLECTUAL PROPERTY. Akana may make 
-changes to this document at any time without notice. All comparisons, functionalities and measures as related to 
-similar products and services offered by other vendors are based on Akana’s internal assessment and/or publicly 
-available information of Akana and other vendor product features, unless otherwise specifically stated. Reliance by you 
-on these assessments / comparative assessments is to be made solely on your own discretion and at your own risk. The 
-content of this document may be out of date, and Akana makes no commitment to update this content. This document may 
-refer to products, programs or services that are not available in your country. Consult your local Akana business 
-contact for information regarding the products, programs and services that may be available to you. Applicable law may 
-not allow the exclusion of implied warranties, so the above exclusion may not apply to you.
+The information provided in this document is provided “AS IS” WITHOUT ANY WARRANTIES OF ANY KIND INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT OF INTELLECTUAL PROPERTY. Akana may make changes to this document at any time without notice. All comparisons, functionalities and measures as related to similar products and services offered by other vendors are based on Akana’s internal assessment and/or publicly available information of Akana and other vendor product features, unless otherwise specifically stated. Reliance by you on these assessments / comparative assessments is to be made solely on your own discretion and at your own risk. The content of this document may be out of date, and Akana makes no commitment to update this content. This document may refer to products, programs or services that are not available in your country. Consult your local Akana business contact for information regarding the products, programs and services that may be available to you. Applicable law may not allow the exclusion of implied warranties, so the above exclusion may not apply to you.
 
 ## Installer Script
-The installer script is used manily to install the product.  At the time of installation, the installer script can 
-create (-c) containers by invoking the container script below.
+The installer script is used manily to install the product.  At the time of installation, the installer script can create (`-c`) containers by invoking the container script below.
 
 To run installer:
 
-* Download and copy the appropriate files to intended server (/opt/akana_sw/stage/install)
+* Download and copy the appropriate files to intended server (`/opt/akana_sw/stage/install`)
 * cd \<extracted location\>/install
-* Extract ps-automation.\<version\>.zip somewhere (unzip ps-automation.\<version\>.zip)
-* vi(or favorite editor) properties/installer.properties
+* Extract `ps-automation.\<version\>.zip` somewhere (`unzip ps-automation.\<version\>.zip`)
+* vi (or favorite editor) `properties/installer.properties`
 * Update as needed
     * resources
     * features
 * add appropriate environment and container property files to properties directory
-* run ./installer.py -i -s -c > createContainers.log
+* run `./installer.py -i -s -c > createContainers.log`
 
 All valid options are:
 
-* -i install
-* -u Update with new jar features
-* -p Environment Properties file to use
-* -s deploy scripts
-* -c create containers
-* --hostname=\<hostname\>
-* --timeout=\<timeout\> 
-* --name=\<container name\>
-* --key=\<container key\>
-* --filepath Path to the zip file that needs to be extracted
-* --installpath Path to the installation
-* --deployFiles is an archive file that contains any extra files to be added to a containers deploy directory
-* --overwrite is the option that will tell the installer to overwrite a directory that already exists.
-* --repository is an option to be used when the lib directory is outside of the product home.  This is useful if using a shared location, mounted drive.
-* --javaopts allows the script to override the default java options used at container startup.
+* `-i` install
+* `-u` Update with new jar features
+* `-p` Environment Properties file to use
+* `-s` deploy scripts
+* `-c` create containers
+* `--hostname=<hostname>`
+* `--timeout=<timeout>`
+* `--name=<container name>`
+* `--key=<container key>`
+* `--filepath` Path to the zip file that needs to be extracted
+* `--installpath` Path to the installation
+* `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
+* `--overwrite` is the option that will tell the installer to overwrite a directory that already exists.
+* `--repository` is an option to be used when the lib directory is outside of the product home.  This is useful if using a shared location, mounted drive.
+* `--javaopts` allows the script to override the default java options used at container startup.
 
 ## Container Script
-The container script is only responsible for creating containers.  It will create however many container property files 
-exist in the property directory.  Container property files are any property file that doesn't contain the name 
-`environment` or `default` in it.
+The container script is only responsible for creating containers.  It will create however many container property files  exist in the property directory.  Container property files are any property file that doesn't contain the name `environment` or `default` in it.
 
-The `environment.property` file is also required in the property directory.  This file will only exist once per server, 
-no matter how many containers are being built on this image.
+The `environment.property` file is also required in the property directory.  This file will only exist once per server, no matter how many containers are being built on this image.
 
 To run container as standalone:
 
-* cd \<install dir\>/sm8/scripts/Lib/soa/automation/properties
-* Update all property files correctly.  Delete the ones you don't want to create
-* cd \<install dir\>/sm8/bin
-* run ./jython.sh ../scripts/Lib/soa/automation/containerManager.py -c > createContainers.log
+* `cd <install dir>/sm8/scripts/Lib/soa/automation/properties`
+* Update all property files correctly.  Delete the ones you don't want to create.
+* `cd <install dir>/sm8/bin`
+* run `./jython.sh ../scripts/Lib/soa/automation/containerManager.py -c > createContainers.log`
 
 All valid options are:
 
-* -c create containers
-* -u update containers
-* -a Add feature to existing container
-* -d Delete container(s) from the PM console
-* --hostname=\<hostname\>
-* --timeout=\<timeout\>
-* --name=\<container name\>
-* --key=\<container key\>
-* --administrator Administrator user for the console
-* --password Password for the administrator user
-* --product Which products containers should be deleted, defaults to 'PM'.  Valid values are: 'PM', 'CM', 'ND'
-* --version Version of the containers.  Required when using the --product flag
-* --deployFiles is an archive file that contains any extra files to be added to a containers deploy directory
+* `-c` create containers
+* `-u` update containers
+* `-a` Add feature to existing container
+* `-d` Delete container(s) from the PM console
+* `--hostname=<hostname>`
+* `--timeout=<timeout>`
+* `--name=<container name>`
+* `--key=<container key>`
+* `--administrator` Administrator user for the console
+* `--password` Password for the administrator user
+* `--product` Which products containers should be deleted, defaults to 'PM'.  Valid values are: 'PM', 'CM', 'ND'
+* `--version` Version of the containers.  Required when using the --product flag
+* `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
     
 ### Logging
 The Database and Container creation takes advantage of using a python logger [Python Logging](https://docs.python.org/2/library/logging.html).  
@@ -104,19 +91,14 @@ The log settings are as follows:
 * INFO
 * DEBUG
 
-The databaseLogger is defaulted to CRITICAL and the containerLogger is defaulted to only print messages at the ERROR 
-level and above.  These are configured a property file named logging.config which is located in the properties 
-directory of the installer.  You can lower the verbose settings of the logger by changing the level setting for the 
-appropriate logger.
+The databaseLogger is defaulted to CRITICAL and the containerLogger is defaulted to only print messages at the ERROR level and above.  These are configured a property file named logging.config which is located in the properties directory of the installer.  You can lower the verbose settings of the logger by changing the level setting for the appropriate logger.
 
-For instance, if you were creating a new database and did not want to see all of the statements but wanted to see 
-informational messages, you would change the databaseLogger level to INFO.  But, if there is an issue, you could set 
+For instance, if you were creating a new database and did not want to see all of the statements but wanted to see informational messages, you would change the databaseLogger level to INFO.  But, if there is an issue, you could set 
 this level to DEBUG and see all of the SQL statements as they are being ran.
 
 ### Delete Container
 
-This feature allows a container to automatically be removed based off of a container key.  This function would be used 
-to remove containers after an update containers has been added into the cluster or a de-scaling activity.  
+This feature allows a container to automatically be removed based off of a container key.  This function would be used to remove containers after an update containers has been added into the cluster or a de-scaling activity.  
 
 This feature is invoked with the following steps:
 
@@ -146,12 +128,10 @@ if instaling multiple feature packs, the features properties would look like:
 ```
 
 ### Environment Property File
-A single environment property file is required for a given environment build out.  These are properties that will be 
-shared across all containers that exist in a given environment.
+A single environment property file is required for a given environment build out.  These are properties that will be shared across all containers that exist in a given environment.
 
 #### Build Database
-The _Create Container_ process can also build the Policy Manager and Community Manager database. This processing is controlled by the 
-properties in the `[DatabaseSection]` part of the _Environment Property File_ shown below.
+The _Create Container_ process can also build the Policy Manager and Community Manager database. This processing is controlled by the properties in the `[DatabaseSection]` part of the _Environment Property File_ shown below.
 
 The scripted database build process is divided into two parts just like the database processing in the Admin Console:
 
@@ -159,11 +139,9 @@ The scripted database build process is divided into two parts just like the data
 already exists, it will be replaced with a new, empty database.
 2. **Schema Management Task** populates the database with the tables and data needed by the selected features.
 
-The database build process scans all of the OSGi bundles in the `sm70/lib` directory tree to locate the scripts and 
-controls needed by these two tasks. It does not depend on anything in the `sm70/dbscripts` directory tree.
+The database build process scans all of the OSGi bundles in the `sm70/lib` directory tree to locate the scripts and controls needed by these two tasks. It does not depend on anything in the `sm70/dbscripts` directory tree.
  
-The database build Jython scripts included in the Automated Deployment package are designed so they can be easily used 
-in the future to provide additional automation such as:
+The database build Jython scripts included in the Automated Deployment package are designed so they can be easily used in the future to provide additional automation such as:
 
 * Changing the database connect string or username and password
 * Applying database updates
@@ -177,10 +155,7 @@ Database configuration works in the following manner:
  * database.create=false -- Do not call DatabaseCreate Task
 * database.configure=false -- Database process is bypassed
 
-Database scripts can be completely script.  This will allow the configuration of the database configuration file, but it 
-will ignore any upgrade scripts that are found.  If this feature is desired, add `database.run.dbscripts=false` into the 
-environment.properties file.  This is an optional property and is not required to exist in the property file.  This will 
-default to true if it does not exist.
+Database scripts can be completely script.  This will allow the configuration of the database configuration file, but it will ignore any upgrade scripts that are found.  If this feature is desired, add `database.run.dbscripts=false` into the environment.properties file.  This is an optional property and is not required to exist in the property file.  This will default to true if it does not exist.
 
 The following schema's can be installed into a database:
 
@@ -307,12 +282,7 @@ A uniquely named container file should be provided for every container that need
 specific environment.  So, if a PM and ND nodes are needed an a single host, it would be required for 2 uniquely named 
 container property files.
 
-For a secured container, include the secured flag as true.  Two different JAVA keystores are required for a secure 
-container.  The container keystore `container.secure.keystore` contains the container private key, the second keystore 
-`container.secure.trusted.keystore` contains the trusted certificates for all the containers and listeners in the 
-environment.  If the container identity certificate has a different password then the container keystore, provide the 
-property `container.secure.alias.password`.  At the same time, the `com.soa.security` category will be appropriately 
-updated and the crl flag will be set to false in the `com.soa.crl` category.
+For a secured container, include the secured flag as true.  Two different JAVA keystores are required for a secure container.  The container keystore `container.secure.keystore` contains the container private key, the second keystore `container.secure.trusted.keystore` contains the trusted certificates for all the containers and listeners in the environment.  If the container identity certificate has a different password then the container keystore, provide the property `container.secure.alias.password`.  At the same time, the `com.soa.security` category will be appropriately updated and the crl flag will be set to false in the `com.soa.crl` category.
 
 Only container required fields are needed in a properties file.  The automation allows property fields to be omitted.  
 The following lists what is required based off of the container type:
@@ -366,16 +336,12 @@ The following lists what is required based off of the container type:
             + harden.nd.security.refresh.time
 
 Automation supports building route files.  For more information on route files see https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607.  
-In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an 
-ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition
-would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.
+In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.
 
-Managing cluster support.  Automation will automatically register an ND container into a Cluster that is created in PM.  
-If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is 
+Managing cluster support.  Automation will automatically register an ND container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is 
 created, the new ND container is then added into this cluster.
 
-Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default 
-interface and port that the container was built to listen on.  For any more required listeners, ND listeners are 
+Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default interface and port that the container was built to listen on.  For additional required listeners, ND listeners are 
 populated with `nd.listener=` and cluster listeners are populated in `cluster.listener=`.  Both of these fields are 
 comma seperated fields.  Within each of these fields they are separated by a `:`, so to create a default http listener 
 it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias:aliasPassword`.  The alias 
@@ -393,21 +359,14 @@ and alias password properties are only required if an https listener is being cr
 * Alias password: the alias password is an optional field and is only required if the key has a password that is 
 different than the containing keystore.
 
-When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be 
-added into a custom JKS and provided to the automation scripts.  The property files used for these certificates are 
-`container.secure.keystore`, `container.secure.storepass` and `container.secure.alias`.  If no JKS is provided an 
-exception will occur, requiring that a JKS is required to add secured endpoints.
+When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be added into a custom JKS and provided to the automation scripts.  The property files used for these certificates are  `container.secure.keystore`, `container.secure.storepass` and `container.secure.alias`.  If no JKS is provided an exception will occur, requiring that a JKS is required to add secured endpoints.
 
-Default container listener can be customized by providing the `container.listener.minimum`, `container.listener.maximum` 
-amd `container.listener.idleTimeout`.  These fields will be used to update the default listener that is created when 
-building a container.  This is mostly recommended for the Policy Manager and Community Manager containers.
+Default container listener can be customized by providing the `container.listener.minimum`, `container.listener.maximum` amd `container.listener.idleTimeout`.  These fields will be used to update the default listener that is created when building a container.  This is mostly recommended for the Policy Manager and Community Manager containers.
 
-`--deployFiles` command line option is used to add extra files into a container deploy directory.  This is a final 
-step that occurs.  This can be used for any custom policies or route file definitions.
+`--deployFiles` command line option is used to add extra files into a container deploy directory.  This is a final step that occurs.  This can be used for any custom policies or route file definitions.
 
 #### Configure Container Properties
-When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs 
-to be added into the ND container property file.
+When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs to be added into the ND container property file.
 ```
 	# disable the remote usage writer in ND containers
     remote.writer.enabled=true
@@ -818,14 +777,8 @@ Install the proper features.  Example property files can be located in the examp
 ### License
 Copyright 2015 Akana, Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
