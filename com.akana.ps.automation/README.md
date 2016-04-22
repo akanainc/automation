@@ -444,6 +444,14 @@ Configure the API Portal (CM) properties.
     atmosphere.default.policies=
 ```
 
+Configure the log4j appender and location.  If no appender is provided, it will default to
+`org.apache.log4j.RollingFileAppender`.  The location should be the directory that all logs will be sent too.
+```
+	# com.soa.log
+	log4j.appender=
+	log4j.location=
+```
+
 #### Hardening Tasks
 These tasks are the implementation of the [Hardening 2.0](http://docs.akana.com/sp/platform-hardening_2.0.html) recommendations.
 

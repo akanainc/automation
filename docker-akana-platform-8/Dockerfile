@@ -6,6 +6,7 @@ ENV TMP_STAGE ${AKANA_ROOT}/stage
 ENV TMP_RESOURCES ${TMP_STAGE}/resources
 ENV TMP_INSTALL ${TMP_STAGE}/install
 ENV INSTALL_LOGS ${AKANA_ROOT}/logs
+ENV CONTAINER_LOGS /var/log/akana_sw
 
 RUN yum -y update \
  && yum -y install wget unzip make gcc net-tools \
@@ -15,20 +16,21 @@ RUN yum -y update \
  ${TMP_RESOURCES} \
  ${TMP_INSTALL} \
  ${INSTALL_LOGS} \
- ${TMP_STAGE}/certs
+ ${TMP_STAGE}/certs \
+ ${CONTAINER_LOGS}
 
 WORKDIR ${TMP_INSTALL}
 
 # Bring in all of the automation scripting
-RUN wget --quiet https://automation8.s3-us-west-1.amazonaws.com/ps-automation_8.1.0_9.zip --directory-prefix=${TMP_INSTALL} \
-	&& unzip -o ${TMP_INSTALL}/ps-automation_8.1.0_9.zip -x */installer.properties -d ${TMP_INSTALL} \
-	&& rm -rf ${TMP_INSTALL}/ps-automation_8.1.0_9.zip \
+RUN wget --quiet https://automation8.s3-us-west-1.amazonaws.com/ps-automation_8.1.0_11.zip --directory-prefix=${TMP_INSTALL} \
+	&& unzip -o ${TMP_INSTALL}/ps-automation_8.1.0_11.zip -x */installer.properties -d ${TMP_INSTALL} \
+	&& rm -rf ${TMP_INSTALL}/ps-automation_8.1.0_11.zip \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/properties/installer.properties -P ${TMP_INSTALL}/properties/ \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/properties/saas.jks -P ${TMP_STAGE}/certs \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-platform-linux-jre-8.1.39.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-platform-update-cumulative-8.1.2.zip -P ${TMP_RESOURCES} \
-	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-pm-8.1.19.zip -P ${TMP_RESOURCES} \
-	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-apiportal-8.1.0.4958.zip -P ${TMP_RESOURCES} \
+	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-pm-8.1.35.zip -P ${TMP_RESOURCES} \
+	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-apiportal-8.1.0.5174.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/com.akana.activity.freemarker_8.0.0.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/com.akana.activity.headers_8.0.0.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/com.akana.activity.normalize_8.0.0.zip -P ${TMP_RESOURCES} \
@@ -44,7 +46,9 @@ RUN wget --quiet https://automation8.s3-us-west-1.amazonaws.com/ps-automation_8.
  	&& rm -rf ${AKANA_ROOT}/sm8/samples \
  	&& rm -rf ${AKANA_ROOT}/sm8/api-portal-dbscripts \
  	&& chmod 755 -R ${AKANA_ROOT} \
- 	&& chown -R akanaAdmin:akanaAdmin ${AKANA_ROOT}
+ 	&& chown -R akanaAdmin:akanaAdmin ${AKANA_ROOT} \
+ 	&& chmod 755 -R ${CONTAINER_LOGS} \
+ 	&& chown -R akanaAdmin:akanaAdmin ${CONTAINER_LOGS}
 
 USER akanaAdmin
 
