@@ -29,8 +29,8 @@ RUN wget --quiet https://automation8.s3-us-west-1.amazonaws.com/ps-automation_8.
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/properties/saas.jks -P ${TMP_STAGE}/certs \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-platform-linux-jre-8.1.39.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-platform-update-cumulative-8.1.2.zip -P ${TMP_RESOURCES} \
-	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-pm-8.1.35.zip -P ${TMP_RESOURCES} \
-	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-apiportal-8.1.0.5174.zip -P ${TMP_RESOURCES} \
+	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-pm-8.1.36.zip -P ${TMP_RESOURCES} \
+	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/akana-apiportal-8.1.0.58.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/com.akana.activity.freemarker_8.0.0.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/com.akana.activity.headers_8.0.0.zip -P ${TMP_RESOURCES} \
 	&& wget --quiet https://automation8.s3-us-west-1.amazonaws.com/com.akana.activity.normalize_8.0.0.zip -P ${TMP_RESOURCES} \
