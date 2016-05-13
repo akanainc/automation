@@ -9,7 +9,7 @@ ENV INSTALL_LOGS ${AKANA_ROOT}/logs
 ENV CONTAINER_LOGS /var/log/akana_sw
 
 RUN yum -y update \
- && yum -y install wget unzip make gcc net-tools \
+ && yum -y install wget unzip make gcc net-tools openscap-scanner scap-security-guide prelink \
  && groupadd -r akanaAdmin && useradd -r -g akanaAdmin akanaAdmin \
  && mkdir -p ${AKANA_ROOT} \
  ${TMP_STAGE} \
@@ -17,7 +17,7 @@ RUN yum -y update \
  ${TMP_INSTALL} \
  ${INSTALL_LOGS} \
  ${TMP_STAGE}/certs \
- ${CONTAINER_LOGS}
+ ${CONTAINER_LOGS} 
 
 WORKDIR ${TMP_INSTALL}
 
