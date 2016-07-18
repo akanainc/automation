@@ -604,36 +604,36 @@ com.soa.mp.core
 #### Container Features
 Install the proper features.  Example property files can be located in the exampleFiles directory within the properties directory.
 
-* [Standalone PM Container](scripts/automation/properties/exampleFiles/Standalone_PM.properties?api=v2)
+* [Standalone PM Container](exampleFiles/Standalone_PM.properties)
     * policy.manager.console
     * policy.manager.services
     * security.services
     * mongo.db (if using mongodb for analytical data)
-* [PM with CM](scripts/automation/properties/exampleFiles/PM_with_CM.properties?api=v2)
+* [PM with CM](exampleFiles/PM_with_CM.properties)
     * Install Standalone PM
     * community.manager
     * community.manager.default.theme
     * community.manager.scheduled.jobs
     * community.manager.simple.developer.theme (If using SimpleDev)
     * community.manager.hermosa.theme (if using the Hermosa theme, 8.2 feature)
-* [PM with CM and OAuth](scripts/automation/properties/exampleFiles/PM_with_CM_and_OAuth.properties?api=v2)
+* [PM with CM and OAuth](exampleFiles/PM_with_CM_and_OAuth.properties)
     * Install PM with CM
     * community.manager.oauth.provider
     * oauth.provider
-* [PM with remote CM](scripts/automation/properties/exampleFiles/PM_with_remote_CM.properties?api=v2)
+* [PM with remote CM](exampleFiles/PM_with_remote_CM.properties)
     * Install Standalone PM
     * community.manager.scheduled.jobs
     * community.manager.plugin
     * community.manager.policy.console
-* [Standalone CM](scripts/automation/properties/exampleFilesStandalone_CM.properties)
+* [Standalone CM](exampleFiles/Standalone_CM.properties)
     * community.manager.apis
     * community.manager.default.theme
     * community.manager.simple.developer.theme (If using SimpleDev)
-* [Standalone CM with OAuth](scripts/automation/properties/exampleFiles/Standalone_CM_with_OAuth.properties?api=v2)
+* [Standalone CM with OAuth](exampleFiles/Standalone_CM_with_OAuth.properties)
     * Install Standalone CM
     * community.manager.oauth.provider
     * oauth.provider
-* [Standalone ND](scripts/automation/properties/exampleFiles/Standalone_ND.properties?api=v2)
+* [Standalone ND](exampleFiles/Standalone_ND.properties)
     * network.director
     * api.security.policy.handler
 * Standalone ND with OAuth
@@ -641,7 +641,7 @@ Install the proper features.  Example property files can be located in the examp
     * community.manager.oauth.provider.agent
     * oauth.provider.agent
     * [TODO] Default property file
-* [Standalone OAuth](scripts/automation/properties/exampleFiles/Standalone_OAuth.properties?api=v2)
+* [Standalone OAuth](exampleFiles/Standalone_OAuth.properties)
     * community.manager.oauth.provider
     * oauth.provider
     * community.manager.plugin
