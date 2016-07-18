@@ -615,7 +615,7 @@ Install the proper features.  Example property files can be located in the examp
     * community.manager.default.theme
     * community.manager.scheduled.jobs
     * community.manager.simple.developer.theme (If using SimpleDev)
-    * community.manager.cloud.theme (if using the Cloud theme, 8.2 feature)
+    * community.manager.hermosa.theme (if using the Hermosa theme, 8.2 feature)
 * [PM with CM and OAuth](scripts/automation/properties/exampleFiles/PM_with_CM_and_OAuth.properties?api=v2)
     * Install PM with CM
     * community.manager.oauth.provider
@@ -680,7 +680,7 @@ Install the proper features.  Example property files can be located in the examp
         - pmdp.malicious.pattern
         - pmdp.oauth
         - pmdp.schema.update
-    * Integration Services
+    * Integration Services - @deprecated in version 8.2
     	- integration.services
     * Freemarker
     	- freemarker.activity
@@ -722,6 +722,8 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     container.listener.minimum=
     container.listener.maximum=
     container.listener.idleTimeout=
+    container.listener.pki.alias=
+    container.listener.pki.alias.password=
     container.secure=false
     # The certificates that will be used for container identity, if the default ones are not acceptable
     container.secure.keystore=
@@ -753,6 +755,7 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     community.manager.scheduled.jobs=false
     community.manager.simple.developer.theme=false
     oauth.provider=false
+    ## 8.0 features
     elastic.search=false
     grant.provisionin.ui=false
     
@@ -763,13 +766,13 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     ping.support=false
     tomcat.agent=false
     
-    #Envision
+    ## Envision
     envision=false
     envision.metrics.collector=false
     envision.policy.manager.console.extensions=false
     envision.policy.manager.service.extensions=false
     envision.policy.manager.analytics.security.provider=false
-    envision.sample.demo.charts
+    envision.sample.demo.charts=false
     
     # PluginSection
     api.security.policy.handler=false
@@ -782,13 +785,15 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     community.manager.laas.schedule.jobs=false
     ping.federate.integration=false
     mongo.db=false
+    ## 8.2 features
+    community.manager.hermosa.theme=false
     
-    #ToolSection
+    # ToolSection
     72.upgrade=false
     admin.monitoring.tool=true
     80.upgrade=false
     
-    #OptionPacks
+    # OptionPacks
     # include if siteminder is required
     sitemider=false
     siteminder.ui=false
@@ -808,6 +813,7 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     pmdp.oauth=false
     pmdp.schema.update=false
     # Integration Services
+    ## @deprecated in version 8.2
     integration.services=false
     # Freemarker
     freemaker.activity=false
@@ -956,6 +962,12 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     ## header.formatter.interceptor.templates
     harden.cm.template=
     
+    # com.soa.api.security
+    ## com.soa.api.security.cache.expirationPeriod
+    harden.cache.expirationPeriod=3600000
+    ## com.soa.api.security.cache.refreshTime
+    harden.cache.refreshTime=300000
+    
     # Network Directory containers
     # com.soa.http.client.core
     ## block.headers.interceptor.blocked
@@ -966,10 +978,8 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     
     # com.soa.api.security
     ## com.soa.api.security.cache.expirationPeriod
-    harden.cache.expirationPeriod=3600000
     harden.nd.security.expiration.period=3600000
     ## com.soa.api.security.cache.refreshTime
-    harden.cache.refreshTime=300000
     harden.nd.security.refresh.time=300000
     
     # Policy and Community Manager containers
@@ -998,6 +1008,8 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     # com.soa.framework
     ## failure.data.capture.enabled
     performance.failureDataCaptureEnabled=true
+    track.txBlockThresholdTime=false
+    txBlockThresholdTime=0
     
     # com.soa.client.subsystem
     pm.client.cache.cacheExpirationSecs=14400
