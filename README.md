@@ -29,7 +29,7 @@ All valid options are:
 * `--name=<container name>`
 * `--key=<container key>`
 * `--filepath` Path to the zip file that needs to be extracted
-* `--installpath` Path to the installation
+* `--installpath` Path to the installation, this should be used when an upgrade requires a completely new directory
 * `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
 * `--overwrite` is the option that will tell the installer to overwrite a directory that already exists.
 * `--repository` is an option to be used when the lib directory is outside of the product home.  This is useful if using a shared location, mounted drive.
@@ -38,6 +38,7 @@ All valid options are:
 * `--containerlog` Sets container build log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--databaselog` Sets database build log level, defaults to 'CRITICAL'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--installerlog` Sets installer log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+* `--jce` Tells the installer the location of the JCE to be extracted into the `/jre/lib/security` directory.  This needs to be downloaded from http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html and supplied at the time of installation.
 
 ## Container Script
 The container script is only responsible for creating containers.  It will create however many container property files  exist in the property directory.  Container property files are any property file that doesn't contain the name `environment` or `default` in it.
@@ -65,6 +66,7 @@ All valid options are:
 * `--product` Which products containers should be deleted, defaults to 'PM'.  Valid values are: 'PM', 'CM', 'ND'
 * `--version` Version of the containers.  Required when using the --product flag
 * `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
+* `--installpath` Path to the installation, this should be used when an upgrade requires a completely new directory
 * `--pmrunning` Should the script validate PM is running, prior to making calls to PM
 * `--containerlog` Sets container build log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--databaselog` Sets database build log level, defaults to 'CRITICAL'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
@@ -350,6 +352,16 @@ In the container property file, all route files are defined in a the property `r
 Managing cluster support.  Automation will automatically register an ND container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is 
 created, the new ND container is then added into this cluster.
 
+Container location is used when adding a cluster or gateway container is added as a deployment zone inside the API Portal.  This needs to
+ be a GPS location of the cluster or container.  This field needs to look something like ``.  These fields need to be set based on the 
+ location you want to set.
+```
+    # Used to set the location for this container that is being created
+    nd.location=
+    # Used when creating a new cluster to set the location of the cluster
+    cluster.location=
+```
+
 Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default interface and port that the container was built to listen on.  For additional required listeners, ND listeners are 
 populated with `nd.listener=` and cluster listeners are populated in `cluster.listener=`.  Both of these fields are 
 comma seperated fields.  Within each of these fields they are separated by a `:`, so to create a default http listener 
@@ -471,10 +483,50 @@ Configure the log4j appender and location.  If no appender is provided, it will 
 	log4j.location=
 ```
 
-#### Tenant Creation
-Automation scripts have the ability to create one (1) to many new tenants or add new themes to existing tenants.  This is accomplished by including the following JSON object in the property file as a string.  The property `tenant.create` will then need to be set to true.
+When configuring email groups to send alerts too.
+```
+    # com.soa.framework
+    email.sender=
+```
 
-For every array element under the tenants attribute will be used to create a new tenant or add a new theme to an existing tenant.
+```
+    # com.soa.policy.handler.audit
+    audit.maxContentSize=
+```
+
+```
+    # com.soa.admin.console 
+    admin.console.domain.enabled=
+```
+
+### Deployment Zone configuration
+Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added into an existing cluster.
+New properties are introduced and only required for ND containers:
+
+```
+    # Required when ND needs to invoke CM provided APIs.  Provide CM address only if CM is not deployed with PM.
+    cm.address=
+    cm.admin.user=
+    cm.admin.password=
+    nd.location=
+    cluster.location=
+```
+
+The location fields contain the GPS location of the datacenter that the containers belong too.  So, if the datacenter existed in LA, the value would be `34.0522,-118.2437`.
+
+The CM admin fields contain information on being able to invoke CM specific APIs.  For the CM address, it is NOT required to include the 
+context root used to reach the portal.
+
+#### Tenant Creation
+Automation scripts have the ability to create one (1) to many new tenants or add new themes to existing tenants.  This is accomplished by
+ including the following JSON object in the property file as a string.  The property `tenant.create` will then need to be set to true.
+
+For every array element under the tenants attribute will be used to create a new tenant will be created.
+
+For every array element unter the themes, inside of the tenants array, a new theme will be added for the tenant was created.  This 
+shoulc only be used for extra themes that need to be added, beyone the initial theme that was created at time of tenant creation.
+
+The deployment zone array is to add deployment zones to the created tenant.  Each array element will add a new deployment zone.
 
 ```
     #TenantProperties
@@ -493,6 +545,15 @@ For every array element under the tenants attribute will be used to create a new
     #  		'consoleAddress': 'https://enord-macbook-pro.local:19910/mdn', \
     #  		'adminEmail': 'admin@open', \
     #  		'adminPassword': 'password'\
+    #       "deploymentzones": [{\
+    #           "name": "apigateway"\
+    #       }]\
+    #		"themes": [{\
+    #			"name": "simpledev",\
+    #			"virtualhost": "developer-localhost",\
+    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
+    #			"themeimpl": "default"
+    #		}]\
     #  	}], \
     #  	'contextRoot': '/mdn', \
     #  	'userRolesDenied': ''\
@@ -500,7 +561,9 @@ For every array element under the tenants attribute will be used to create a new
     portal.definition=
 ```
 
-The older properties are still supported when creating a single tenant.  Using this will only allow you to create a single tenant and not add extra themes.  When using this method, you are warned with the following warning `Consider migrating to using the tenants object, which supports multiple tenants and themes`.
+The older properties are still supported when creating a single tenant.  Using this will only allow you to create a single tenant and not 
+add extra themes.  When using this method, you are warned with the following warning `Consider migrating to using the tenants object, 
+which supports multiple tenants and themes`.
 
 ```
     #TenantProperties
@@ -604,36 +667,37 @@ com.soa.mp.core
 #### Container Features
 Install the proper features.  Example property files can be located in the exampleFiles directory within the properties directory.
 
-* [Standalone PM Container](exampleFiles/Standalone_PM.properties)
+* [Standalone PM Container](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/Standalone_PM.properties?api=v2)
     * policy.manager.console
     * policy.manager.services
     * security.services
     * mongo.db (if using mongodb for analytical data)
-* [PM with CM](exampleFiles/PM_with_CM.properties)
+* [PM with CM](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/PM_with_CM.properties?api=v2)
     * Install Standalone PM
     * community.manager
     * community.manager.default.theme
     * community.manager.scheduled.jobs
     * community.manager.simple.developer.theme (If using SimpleDev)
     * community.manager.hermosa.theme (if using the Hermosa theme, 8.2 feature)
-* [PM with CM and OAuth](exampleFiles/PM_with_CM_and_OAuth.properties)
+* [PM with CM and OAuth](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/PM_with_CM_and_OAuth.properties?api=v2)
     * Install PM with CM
     * community.manager.oauth.provider
     * oauth.provider
-* [PM with remote CM](exampleFiles/PM_with_remote_CM.properties)
+* [PM with remote CM](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/PM_with_remote_CM.properties?api=v2)
     * Install Standalone PM
     * community.manager.scheduled.jobs
     * community.manager.plugin
     * community.manager.policy.console
-* [Standalone CM](exampleFiles/Standalone_CM.properties)
+* [Standalone CM](com.soa.pso.automation.jython/scripts/automation/properties/exampleFilesStandalone_CM.properties)
     * community.manager.apis
     * community.manager.default.theme
     * community.manager.simple.developer.theme (If using SimpleDev)
-* [Standalone CM with OAuth](exampleFiles/Standalone_CM_with_OAuth.properties)
+    * community.manager.hermosa.theme (if using the Hermosa theme, 8.2 feature)
+* [Standalone CM with OAuth](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/Standalone_CM_with_OAuth.properties?api=v2)
     * Install Standalone CM
     * community.manager.oauth.provider
     * oauth.provider
-* [Standalone ND](exampleFiles/Standalone_ND.properties)
+* [Standalone ND](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/Standalone_ND.properties?api=v2)
     * network.director
     * api.security.policy.handler
 * Standalone ND with OAuth
@@ -641,7 +705,7 @@ Install the proper features.  Example property files can be located in the examp
     * community.manager.oauth.provider.agent
     * oauth.provider.agent
     * [TODO] Default property file
-* [Standalone OAuth](exampleFiles/Standalone_OAuth.properties)
+* [Standalone OAuth](com.soa.pso.automation.jython/scripts/automation/properties/exampleFiles/Standalone_OAuth.properties?api=v2)
     * community.manager.oauth.provider
     * oauth.provider
     * community.manager.plugin
@@ -701,6 +765,58 @@ Custom features that are created for a specific client can be installed when usi
 To install the Endpoint selector and the API Hook features you would include the following; `custom.features=com.akana.pso.endpointselector.version,com.akana.pso.apihooks.extensions`.
 
 NOTE: Automation will not complete any extra configuration tasks, like installing or updating schema tasks.  These tasks will need to be completed manually.
+
+##### Custom Properties
+
+Additional properties can be added into any category.  These are useful when a category, that doesn't exist out of the box, needs to be added to any configuration category.  There will be no field validation when adding properties in this manner.
+
+These properties are added by including the following property in any container property file:
+
+```
+    # Custom Properties to be added into any configuration category.
+    custom.properties=
+    #custom.properties={ \
+    #	"pids": [{ \
+    #  	    "pid": "<name of pid, like com.soa.log>", \
+    #  	    "properties": [{\
+    #  		    "property": "name of property, like log4j.appender.SYSLOG>", \
+    #  		    "value": "<value of property to be set"
+    #	    }]\
+    #  	}] \
+    #}
+```
+
+If it was required to add SYSLOG into the `com.soa.log` category, the property would look like:
+
+```
+    custom.properties={ \
+    	"pids": [{ \
+      	    "pid": "com.soa.log", \
+      	    "properties": [{ \
+      		    "property": "log4j.appender.SYSLOG", \
+      		    "value": "org.apache.log4j.net.SyslogAppender" \
+    	    },{ \
+                "property": "log4j.appender.syslog.FacilityPrinting", \
+      		    "value": "true" \
+            },{ \
+                "property": "log4j.appender.SYSLOG.Header", \
+      		    "value": "true" \
+            },{ \
+                "property": "log4j.appender.SYSLOG.syslogHost", \
+      		    "value": "$rsyslog_host" \
+            },{ \
+                "property": "log4j.appender.SYSLOG.facility", \
+      		    "value": "$syslog_facility" \
+            },{ \
+                "property": "log4j.appender.SYSLOG.layout", \
+      		    "value": "org.apache.log4j.PatternLayout" \
+            },{ \
+                "property": "log4j.appender.SYSLOG.layout.conversionPattern", \
+      		    "value": "%d %-5p [%t] %c{1} - %m%n" \
+            }] \
+      	}] \
+    }
+```
         
 #### Property File
 
@@ -757,7 +873,7 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     oauth.provider=false
     ## 8.0 features
     elastic.search=false
-    grant.provisionin.ui=false
+    grant.provisioning.ui=false
     
     ## Miscellaneous
     agent.foundation=false
@@ -792,12 +908,14 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     72.upgrade=false
     admin.monitoring.tool=true
     80.upgrade=false
+    82.upgrade=false
+    admin.health.tool=true
     
     # OptionPacks
     # include if siteminder is required
     sitemider=false
     siteminder.ui=false
-    site.minder.path=
+    siteminder.path=
     # include is configuring SAML authentication
     saml2.sso=false
     saml2.sso.ui=false
@@ -829,7 +947,7 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     database.configure=true
     proxy.filename=
     # used to route containers through load balancer when needed
-    # Format needs to be the following '<routes><route><filename>com.soa.http.route-pm1.cfg</filename><pattern>http://pm.host.com:9900/*</pattern><url>http://lb.host.com</url></route></routes>'
+    # Format needs to be the following 'com.soa.http.route-pm1.cfg;http://pm.host.com:9900/*;http://lb.host.com'
     # Needed when routing requests back through a load balance: https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607
     route.definitions=
     
@@ -845,11 +963,17 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     pm.admin.password=
     # If Basic Auth has been disabled for the configjob, set configjob.secured to false
     pm.admin.basicauth=
+    # Required when ND needs to invoke CM provided APIs.  Provide CM address only if CM is not deployed with PM.
+    cm.address=
+    cm.admin.user=
+    cm.admin.password=
     # Register ND to PM
     register.nd=true
     # all required listeners to be created for nd.  This is a comma seperated field that consistes of at least 1 entries 'listener_name:hostname:port:protocol:idleTimeout:poolMax:poolMin:bind:alias'.
     # if ND is secured, automation needs to add an endpoint to the listener.  The automation will use the 'container.secure.keystore' to search from the proper certificate for each listener
     nd.listener=
+    # Used to set the location for this container that is being created
+    nd.location=
     # org needs to be a valid uddi key (Change if container needs to be in a different organization)
     # Change if ND is required to be under a different organization
     org=uddi:soa.com:registryorganization
@@ -857,7 +981,8 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     cluster=
     # all required listeners to be created for the cluster, if the cluster doesn't exist.  This is a comma seperated field that consistes of at least 1 entries 'listener_name:hostname:port:protocol:idleTimeout:poolMax:poolMin:bind'
     cluster.listener=
-    
+    # Used when creating a new cluster to set the location of the cluster
+    cluster.location=
     
     # disable the remote usage writer in ND containers
     # com.soa.monitor.usage
@@ -910,27 +1035,45 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     log4j.appender=
     log4j.location=
     
+    # com.soa.framework
+    email.sender=
+    
+    # com.soa.policy.handler.audit
+    audit.maxContentSize=10000000
+    
+    # com.soa.admin.console
+    admin.console.domain.enabled=
+    
     # grid cache true or false
     grid.cache=false
     
     #TenantProperties
     tenant.create=false
-    #{
-    #	'contextRoot': '/mdn', \
-    #  	'userRolesDenied': '', \
-    #  	'tenants': [{\
-    #  		'contactEmailAddress': 'no-reply@open', \
-    #  		'virtualHosts': 'localhost,enord-macbook-pro.local,monsanto.akana.local', \
-    #  		'address': 'https://enord-macbook-pro.local:19910', \
-    #  		'url': 'https://enord-macbook-pro.local:19910', \
-    #  		'name': 'Monsanto Developer Network', \
-    #  		'theme': 'default', \
-    #  		'id': 'mdn', \
-    #  		'themeimpl': 'default', \
-    #  		'fromEmailAddress': 'no-reply@open', \
-    #  		'consoleAddress': 'https://enord-macbook-pro.local:19910/mdn', \
-    #  		'adminEmail': 'admin@open', \
-    #  		'adminPassword': 'password'\
+    #portal.definition={
+    #	"contextRoot": "/devporal", \
+    #  	"userRolesDenied": "", \
+    #  	"tenants": [{\
+    #  		"contactEmailAddress": "no-reply@open", \
+    #  		"virtualHosts": "localhost", \
+    #  		"address": "https://localhost:19910", \
+    #  		"url": "https://localhost:19910", \
+    #  		"name": "Automation Developer Network", \
+    #  		"theme": "hermosa", \
+    #  		"id": "devportal", \
+    #  		"themeimpl": "default", \
+    #  		"fromEmailAddress": "no-reply@open", \
+    #  		"consoleAddress": "https://localhost:19910/devportal", \
+    #  		"adminEmail": "admin@open", \
+    #  		"adminPassword": "password"\
+    #       "deploymentzones": [{\
+    #           "name": "apigateway"\
+    #       }]\
+    #		"themes": [{\
+    #			"name": "simpledev",\
+    #			"virtualhost": "developer-localhost",\
+    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
+    #			"themeimpl": "default"
+    #		}]\
     #  	}] \
     #}
     portal.definition=
@@ -1082,6 +1225,18 @@ NOTE: Automation will not complete any extra configuration tasks, like installin
     # com.soa.auz.operation (PM containers only)
     cached.auz.engine.operation.cacheTimeout=300
     cached.auz.engine.operation.expirationTimeInSeconds=14400
+    
+    # Custom Properties to be added into any configuration category.
+    custom.properties=
+    #custom.properties={ \
+    #	"pids": [{ \
+    #  	    "pid": "<name of pid, like com.soa.log>", \
+    #  	    "properties": [{\
+    #  		    "property": "name of property, like log4j.appender.SYSLOG>", \
+    #  		    "value": "<value of property to be set"
+    #	    }]\
+    #  	}] \
+    #}
 ```
 
 ## Copyright
