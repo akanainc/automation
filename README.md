@@ -14,7 +14,7 @@ To run installer:
     * resources
     * features
 * add appropriate environment and container property files to properties directory
-* run `./installer.py -i -s -c > createContainers.log`
+* run `./installer.py -isc > createContainers.log`
 
 All valid options are:
 
@@ -127,13 +127,34 @@ The following steps are required to run the password encrypt utility.
     # install.path and resources.location must be absolute
     install.path=/opt/akana_sw/
     resources.location=/opt/akana_sw/stage/resources/
-    features=<Update with all desired add on features>
+    ## 8.3
+    features=akana-platform-8.3.0.zip\
+        ,akana-api-platform-8.3.0.zip\
+        ,com.soa.saml2.websso_8.3.199579.zip\
+        ,com.soa.security.provider.siteminder_8.3.199579.zip\
+        ,com.akana.activity.normalize_8.2.0.zip\
+        ,com.akana.activity.freemarker_8.3.0.zip\
+        ,com.akana.activity.headers_8.2.1.zip\
+        ,com.akana.devservices_8.2.1.zip\
+        ,lifecyclemanagerplatform_8.0.0.00316.zip\
+        ,com.akana.log4j.elasticsearch_8.3.0.zip
+    jce.location=
+    ncipher.location=
 ```
 
 if installing multiple feature packs, the features properties would look like:
 
 ```
-	features=akana-platform-8.1.39.zip,akana-pm-8.0.115.zip,akana-apiportal-8.0.0.291.zip,com.akana.devservices_8.0.0.zip,com.akana.integration.services_8.0.189684.zip,com.akana.activity.freemarker_8.0.0.zip,com.akana.activity.headers_8.0.0.zip,com.akana.activity.normalize_8.0.0.zip,com.soa.security.provider.siteminder_8.0.189684.zip,PolicyManagerForDataPower_8.0.0.zip
+	features=akana-platform-8.3.0.zip\
+        ,akana-api-platform-8.3.0.zip\
+        ,com.soa.saml2.websso_8.3.199579.zip\
+        ,com.soa.security.provider.siteminder_8.3.199579.zip\
+        ,com.akana.activity.normalize_8.2.0.zip\
+        ,com.akana.activity.freemarker_8.3.0.zip\
+        ,com.akana.activity.headers_8.2.1.zip\
+        ,com.akana.devservices_8.2.1.zip\
+        ,lifecyclemanagerplatform_8.0.0.00316.zip\
+        ,com.akana.log4j.elasticsearch_8.3.0.zip
 ```
 
 ### Environment Property File
@@ -177,6 +198,8 @@ The following schema's can be installed into a database:
 * wcf
 * ims
 * websso
+* lm
+* database.custom - is used for any custom schema changes.  This is a comma separated field of all custom schema's  `database.custom=ps.common.schema`
 
 Specify the configuration values for this database
 
@@ -219,23 +242,26 @@ following fields with the correct values:
     install.path=/opt/akana_sw/
     
     #DatabaseSection
-    database.create=false
+    database.create=true
     # if database create and the database already exist, what should we do
-    database.recreate=false
+    database.recreate=true
     # Should the scripts run any needed dbscripts
     database.run.dbscripts=true
     # Check the required schemas
     database.pm=true
-    database.cm=true
-    database.oauth=true
+    database.cm=false
+    database.oauth=false
     database.laas=false
     database.upgrade52=false
     database.pmdp=false
     database.wcf=false
     database.ims=false
     database.websso=false
-    #   Specify the configuration values for this database
-    #       key       |restrict | description         
+    database.lm=false
+    # database.custom is used for any custom schema changes.  This is a comma separated field of all custom schema's  `database.custom=ps.common.schema`
+    database.custom=
+    #  	Specify the configuration values for this database
+    #    	key       |restrict | description         
     #   -------------+---------+--------------------------------------------------
     #   databaseType |         | 'mssql', 'mysql', 'oracle', 'oracle-sn', 'db2'
     #   user         |         | Database connect userid
@@ -265,7 +291,7 @@ following fields with the correct values:
     database.max.pool.size=30
     database.min.pool.size=3
     database.max.wait=30000
-    database.jar=<required database jar file>
+    database.jar=
     # mssql/oracle specific, only populate for mssql or oracle
     database.instance.name=
     # db2 specific, only populate for db2
@@ -347,10 +373,10 @@ The following lists what is required based off of the container type:
             + harden.nd.security.refresh.time
 
 Automation supports building route files.  For more information on route files see https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607.  
-In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.
+In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.  See: https://library.akana.com/display/MAIN/Routing+Network+Director+through+the+F5
 
-Managing cluster support.  Automation will automatically register an ND container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is 
-created, the new ND container is then added into this cluster.
+Managing cluster support.  Automation will automatically register an any container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is 
+created, the new container is then added into this cluster.
 
 Container location is used when adding a cluster or gateway container is added as a deployment zone inside the API Portal.  This needs to
  be a GPS location of the cluster or container.  This field needs to look something like ``.  These fields need to be set based on the 
@@ -360,6 +386,18 @@ Container location is used when adding a cluster or gateway container is added a
     nd.location=
     # Used when creating a new cluster to set the location of the cluster
     cluster.location=
+```
+
+New deployment zones are created when either a new cluster is created or when a gateway is added, but not added to a 
+cluster.  When a deployment zone is required to be created, the gateway container needs to know how to invoke the 
+deployment zone API in the portal.  This requires the portal to be deployed prior to the gateway and the following 
+properties to also be included:
+```
+    # Required when ND needs to invoke CM provided APIs.  Provide CM address only if CM is not deployed with PM.
+    cm.address=
+    cm.admin.user=
+    cm.admin.password=
+
 ```
 
 Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default interface and port that the container was built to listen on.  For additional required listeners, ND listeners are 
@@ -489,6 +527,8 @@ When configuring email groups to send alerts too.
     email.sender=
 ```
 
+When configuring a Policy or Community Manager containers, it is <span style="color:red">*required</span> to include `audit.maxContentSize`.  
+
 ```
     # com.soa.policy.handler.audit
     audit.maxContentSize=
@@ -500,7 +540,8 @@ When configuring email groups to send alerts too.
 ```
 
 ### Deployment Zone configuration
-Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added into an existing cluster.
+Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added 
+into an existing cluster.
 New properties are introduced and only required for ND containers:
 
 ```
@@ -532,6 +573,8 @@ The deployment zone array is to add deployment zones to the created tenant.  Eac
     #TenantProperties
     tenant.create=false
     #{
+    #   'contextRoot': '/mdn', \
+    #  	'userRolesDenied': '', \
     #	'tenants': [{\
     #       'contactEmailAddress': 'no-reply@open', \
     #  		'virtualHosts': 'localhost,enord-macbook-pro.local,monsanto.akana.local', \
@@ -548,15 +591,7 @@ The deployment zone array is to add deployment zones to the created tenant.  Eac
     #       "deploymentzones": [{\
     #           "name": "apigateway"\
     #       }]\
-    #		"themes": [{\
-    #			"name": "simpledev",\
-    #			"virtualhost": "developer-localhost",\
-    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
-    #			"themeimpl": "default"
-    #		}]\
     #  	}], \
-    #  	'contextRoot': '/mdn', \
-    #  	'userRolesDenied': ''\
     #}
     portal.definition=
 ```
@@ -866,10 +901,8 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ## Community Manager
     community.manager=false
     community.manager.apis=false
-    community.manager.default.theme=false
     community.manager.oauth.provider=false
     community.manager.scheduled.jobs=false
-    community.manager.simple.developer.theme=false
     oauth.provider=false
     ## 8.0 features
     elastic.search=false
@@ -890,6 +923,9 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     envision.policy.manager.analytics.security.provider=false
     envision.sample.demo.charts=false
     
+    ## Lifecycle Manager
+    lifecycle.manager=false
+    
     # PluginSection
     api.security.policy.handler=false
     cluster.support=false
@@ -903,13 +939,18 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     mongo.db=false
     ## 8.2 features
     community.manager.hermosa.theme=false
+    community.manager.default.theme=false
+    community.manager.simple.developer.theme=false
+    api.platform.plugin=false
+    elasticsearch.log4j.appender.plugin=false
     
     # ToolSection
     72.upgrade=false
     admin.monitoring.tool=true
+    admin.health.tool=true
     80.upgrade=false
     82.upgrade=false
-    admin.health.tool=true
+    83.upgrade=false
     
     # OptionPacks
     # include if siteminder is required
@@ -1065,15 +1106,6 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #  		"consoleAddress": "https://localhost:19910/devportal", \
     #  		"adminEmail": "admin@open", \
     #  		"adminPassword": "password"\
-    #       "deploymentzones": [{\
-    #           "name": "apigateway"\
-    #       }]\
-    #		"themes": [{\
-    #			"name": "simpledev",\
-    #			"virtualhost": "developer-localhost",\
-    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
-    #			"themeimpl": "default"
-    #		}]\
     #  	}] \
     #}
     portal.definition=
@@ -1237,6 +1269,13 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #	    }]\
     #  	}] \
     #}
+    
+    # com.soa.external.keystore
+    com.soa.keystore.external.encrypted=
+    com.soa.keystore.external.keyStoreType=
+    com.soa.keystore.external.location=
+    com.soa.keystore.external.password=
+    com.soa.keystore.external.providerName=
 ```
 
 ## Copyright
