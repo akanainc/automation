@@ -14,7 +14,7 @@ To run installer:
     * resources
     * features
 * add appropriate environment and container property files to properties directory
-* run `./installer.py -isc > createContainers.log`
+* run `./installer.py -i -s -c > createContainers.log`
 
 All valid options are:
 
@@ -40,6 +40,8 @@ All valid options are:
 * `--installerlog` Sets installer log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--jce` Tells the installer the location of the JCE to be extracted into the `/jre/lib/security` directory.  This needs to be downloaded from http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html and supplied at the time of installation.
 * `--postinstallscript` DBscript if any extra dbscripts need to be ran, after container installation
+* `--custompolicies` Custom Policies to deploy to the deploy directory.
+* `--javaHome` Location of the JRE
 
 ## Container Script
 The container script is only responsible for creating containers.  It will create however many container property files  exist in the property directory.  Container property files are any property file that doesn't contain the name `environment` or `default` in it.
@@ -73,7 +75,8 @@ All valid options are:
 * `--databaselog` Sets database build log level, defaults to 'CRITICAL'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--installerlog` Sets installer log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--postinstallscript` DBscript if any extra dbscripts need to be ran, after container installation
-
+* `--custompolicies` Custom Policies to deploy to the deploy directory.
+    
 ### Logging
 The Database and Container creation takes advantage of using a python logger [Python Logging](https://docs.python.org/2/library/logging.html).  
 The log settings are as follows:
@@ -86,7 +89,7 @@ The log settings are as follows:
 
 The databaseLogger is defaulted to CRITICAL and the containerLogger is defaulted to only print messages at the ERROR level and above.  These are configured a property file named logging.config which is located in the properties directory of the installer.  You can lower the verbose settings of the logger by changing the level setting for the appropriate logger.
 
-For instance, if you were creating a new database and did not want to see all of the statements but wanted to see informational messages, you would change the databaseLogger level to INFO.  But, if there is an issue, you could set
+For instance, if you were creating a new database and did not want to see all of the statements but wanted to see informational messages, you would change the databaseLogger level to INFO.  But, if there is an issue, you could set 
 this level to DEBUG and see all of the SQL statements as they are being ran.
 
 ### Container Monitoring
@@ -109,7 +112,7 @@ This feature is invoked with the following steps:
 
 This can be ran from any container in the environment.
 
-
+   
 ## Property Files
 
 ### Password Encryption
@@ -129,34 +132,13 @@ The following steps are required to run the password encrypt utility.
     # install.path and resources.location must be absolute
     install.path=/opt/akana_sw/
     resources.location=/opt/akana_sw/stage/resources/
-    ## 8.3
-    features=akana-platform-8.3.0.zip\
-        ,akana-api-platform-8.3.0.zip\
-        ,com.soa.saml2.websso_8.3.199579.zip\
-        ,com.soa.security.provider.siteminder_8.3.199579.zip\
-        ,com.akana.activity.normalize_8.2.0.zip\
-        ,com.akana.activity.freemarker_8.3.0.zip\
-        ,com.akana.activity.headers_8.2.1.zip\
-        ,com.akana.devservices_8.2.1.zip\
-        ,lifecyclemanagerplatform_8.0.0.00316.zip\
-        ,com.akana.log4j.elasticsearch_8.3.0.zip
-    jce.location=
-    ncipher.location=
+    features=<Update with all desired add on features>
 ```
 
 if installing multiple feature packs, the features properties would look like:
 
 ```
-	features=akana-platform-8.3.0.zip\
-        ,akana-api-platform-8.3.0.zip\
-        ,com.soa.saml2.websso_8.3.199579.zip\
-        ,com.soa.security.provider.siteminder_8.3.199579.zip\
-        ,com.akana.activity.normalize_8.2.0.zip\
-        ,com.akana.activity.freemarker_8.3.0.zip\
-        ,com.akana.activity.headers_8.2.1.zip\
-        ,com.akana.devservices_8.2.1.zip\
-        ,lifecyclemanagerplatform_8.0.0.00316.zip\
-        ,com.akana.log4j.elasticsearch_8.3.0.zip
+	features=akana-platform-8.1.39.zip,akana-pm-8.0.115.zip,akana-apiportal-8.0.0.291.zip,com.akana.devservices_8.0.0.zip,com.akana.integration.services_8.0.189684.zip,com.akana.activity.freemarker_8.0.0.zip,com.akana.activity.headers_8.0.0.zip,com.akana.activity.normalize_8.0.0.zip,com.soa.security.provider.siteminder_8.0.189684.zip,PolicyManagerForDataPower_8.0.0.zip
 ```
 
 ### Environment Property File
@@ -167,12 +149,12 @@ The _Create Container_ process can also build the Policy Manager and Community M
 
 The scripted database build process is divided into two parts just like the database processing in the Admin Console:
 
-1. **Database Create Task** is the equivalent of the "Create new database" option in Admin console. If the database
+1. **Database Create Task** is the equivalent of the "Create new database" option in Admin console. If the database 
 already exists, it will be replaced with a new, empty database.
 2. **Schema Management Task** populates the database with the tables and data needed by the selected features.
 
 The database build process scans all of the OSGi bundles in the `sm8/lib` directory tree to locate the scripts and controls needed by these two tasks. It does not depend on anything in the `sm8/dbscripts` directory tree.
-
+ 
 The database build Jython scripts included in the Automated Deployment package are designed so they can be easily used in the future to provide additional automation such as:
 
 * Changing the database connect string or username and password
@@ -200,8 +182,6 @@ The following schema's can be installed into a database:
 * wcf
 * ims
 * websso
-* lm
-* database.custom - is used for any custom schema changes.  This is a comma separated field of all custom schema's  `database.custom=ps.common.schema`
 
 Specify the configuration values for this database
 
@@ -223,10 +203,10 @@ Specify the configuration values for this database
 | maxWait      |          | Maximum time to wait for an available connection |
 
 #### Configure MongoDB
-MongoDB configuration is required when the feature `Akana MongoDB Support' (mongo.db) has been installed into the Policy
-Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the
+MongoDB configuration is required when the feature `Akana MongoDB Support' (mongo.db) has been installed into the Policy 
+Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the 
 following fields with the correct values:
-
+  
 ```
     #Mongo DB Configuration
     mongodb.thread=20
@@ -242,28 +222,25 @@ following fields with the correct values:
 ```
     #InstallSection
     install.path=/opt/akana_sw/
-
+    
     #DatabaseSection
-    database.create=true
+    database.create=false
     # if database create and the database already exist, what should we do
-    database.recreate=true
+    database.recreate=false
     # Should the scripts run any needed dbscripts
     database.run.dbscripts=true
     # Check the required schemas
     database.pm=true
-    database.cm=false
-    database.oauth=false
+    database.cm=true
+    database.oauth=true
     database.laas=false
     database.upgrade52=false
     database.pmdp=false
     database.wcf=false
     database.ims=false
     database.websso=false
-    database.lm=false
-    # database.custom is used for any custom schema changes.  This is a comma separated field of all custom schema's  `database.custom=ps.common.schema`
-    database.custom=
-    #  	Specify the configuration values for this database
-    #    	key       |restrict | description         
+    #   Specify the configuration values for this database
+    #       key       |restrict | description         
     #   -------------+---------+--------------------------------------------------
     #   databaseType |         | 'mssql', 'mysql', 'oracle', 'oracle-sn', 'db2'
     #   user         |         | Database connect userid
@@ -293,20 +270,20 @@ following fields with the correct values:
     database.max.pool.size=30
     database.min.pool.size=3
     database.max.wait=30000
-    database.jar=
+    database.jar=<required database jar file>
     # mssql/oracle specific, only populate for mssql or oracle
     database.instance.name=
     # db2 specific, only populate for db2
     database.tablespace=
     database.bufferName=
     database.isNewBuffer=
-
+    
     #ProxySection
     proxy.url=
     proxy=
     proxy.user=
     proxy.password=
-
+    
     #Mongo DB Configuration
     mongodb.thread=20
     mongodb.enabled=false
@@ -317,8 +294,8 @@ following fields with the correct values:
 ```
 
 ### Container Property Files
-A uniquely named container file should be provided for every container that needs to be built and configured for a
-specific environment.  So, if a PM and ND nodes are needed an a single host, it would be required for 2 uniquely named
+A uniquely named container file should be provided for every container that needs to be built and configured for a 
+specific environment.  So, if a PM and ND nodes are needed an a single host, it would be required for 2 uniquely named 
 container property files.
 
 For a secured container, include the secured flag as true.  Two different JAVA keystores are required for a secure container.  The container keystore `container.secure.keystore` contains the container private key, the second keystore `container.secure.trusted.keystore` contains the trusted certificates for all the containers and listeners in the environment.  If the container identity certificate has a different password then the container keystore, provide the property `container.secure.alias.password`.  At the same time, the `com.soa.security` category will be appropriately updated and the crl flag will be set to false in the `com.soa.crl` category.
@@ -339,7 +316,7 @@ The following lists what is required based off of the container type:
         - proxy.filename
         - route.definitions
         - wsmex.address
-    * Hardening Section
+    * Hardening Section 
         - container.harden
         - if container.harden is true
             + harden.ignoreCookies
@@ -375,13 +352,13 @@ The following lists what is required based off of the container type:
             + harden.nd.security.refresh.time
 
 Automation supports building route files.  For more information on route files see https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607.  
-In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.  See: https://library.akana.com/display/MAIN/Routing+Network+Director+through+the+F5
+In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.
 
-Managing cluster support.  Automation will automatically register an any container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is
-created, the new container is then added into this cluster.
+Managing cluster support.  Automation will automatically register an ND container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is 
+created, the new ND container is then added into this cluster.
 
 Container location is used when adding a cluster or gateway container is added as a deployment zone inside the API Portal.  This needs to
- be a GPS location of the cluster or container.  This field needs to look something like ``.  These fields need to be set based on the
+ be a GPS location of the cluster or container.  This field needs to look something like ``.  These fields need to be set based on the 
  location you want to set.
 ```
     # Used to set the location for this container that is being created
@@ -390,43 +367,57 @@ Container location is used when adding a cluster or gateway container is added a
     cluster.location=
 ```
 
-New deployment zones are created when either a new cluster is created or when a gateway is added, but not added to a
-cluster.  When a deployment zone is required to be created, the gateway container needs to know how to invoke the
-deployment zone API in the portal.  This requires the portal to be deployed prior to the gateway and the following
-properties to also be included:
+Listeners can be created for all containers.  If the `listener` property is provided, all default listeners are removed
+and the listener(s) defined in this property are created.  The following in the format of creating listeners:
 ```
-    # Required when ND needs to invoke CM provided APIs.  Provide CM address only if CM is not deployed with PM.
-    cm.address=
-    cm.admin.user=
-    cm.admin.password=
-
+    listener={\
+        'Endpoints':[{\
+            'name':'default-https',\
+            'bindtoall':'true',\
+            'protocol':'https',\
+            'host':'apiplatform.akana.local',\
+            'port':'9900',\
+            'minimumThreadPool':5,\
+            'maximumThreadPool':500,\
+            'idleThreadTimeout':1800000,\
+            'alias':'apiplatform.akana.local',\
+            'aliasPassword':'changeit'\
+        }]\
+    }
 ```
 
-Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default interface and port that the container was built to listen on.  For additional required listeners, ND listeners are
-populated with `nd.listener=` and cluster listeners are populated in `cluster.listener=`.  Both of these fields are
-comma seperated fields.  Within each of these fields they are separated by a `:`, so to create a default http listener
-it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias:aliasPassword`.  The alias
-and alias password properties are only required if an https listener is being created.
+**NOTE: Listener creation using a string is deprecated for containers, but is still supported. 
+
+~~Listeners can be created for both ND and clusters.  By default, ND will automatically have a listener for the default interface and port that the container was built to listen on.  For additional required listeners, ND listeners are 
+populated with `nd.listener=` and cluster listeners are populated in `cluster.listener=`.  Both of these fields are 
+comma seperated fields.  Within each of these fields they are separated by a `:`, so to create a default http listener 
+it would look like `default_http0:hostname:9905:http:idleTimeout:poolMax:poolMin:bind:alias:aliasPassword`.  The alias 
+and alias password properties are only required if an https listener is being created.~~
 
 * Name: `default_http0`, defines the name of this listener.  
 * Hostname: `hostname`, defines the hostname that is hosting the ND/cluster container.  
 * Port: the port that is listening for that container.  
-* Protocol: the protocol, this needs to be either 'http' or 'https'.
+* Protocol: the protocol, this needs to be either 'http' or 'https'. 
 * Timeout: the idle timeout of the listener, the default value is '1800000'.
 * Max connections: the max number of connections allowed, the default value is '100'.
 * Minimum connections: the minimum number of connections that always remain, the value default is '5'.
 * Bind: the bind to all interfaces, this needs to be either 'true' or 'false'.
 * Alias: the alias to a key that is in the `container.secure.keystore`.
-* Alias password: the alias password is an optional field and is only required if the key has a password that is
+* Alias password: the alias password is an optional field and is only required if the key has a password that is 
 different than the containing keystore.
 
 When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be added into a custom JKS and provided to the automation scripts.  The property files used for these certificates are  `container.secure.keystore`, `container.secure.storepass` and `container.secure.alias`.  If no JKS is provided an exception will occur, requiring that a JKS is required to add secured endpoints.
 
-Default container listener can be customized by providing the `container.listener.minimum`, `container.listener.maximum` amd `container.listener.idleTimeout`.  These fields will be used to update the default listener that is created when building a container.  This is mostly recommended for the Policy Manager and Community Manager containers.
+** Note: Deprecated use the listener property below
+~~Default container listener can be customized by providing the `container.listener.minimum`, `container.listener.maximum` amd `container.listener.idleTimeout`.  These fields will be used to update the default listener that is created when building a container.  This is mostly recommended for the Policy Manager and Community Manager containers.~~
 
-If the default container listener is secured, the container identity cert will be used as the PKI.  This PKI can be updated when the container is created.  By including the property `container.listener.pki.alias`, the automation scripts will add this key to the default listener.  If this key has a different password then the keystore, the property `container.listener.pki.alias.password` needs to be supplied.  The keystore, `container.secure.keystore`, must include both the key and the certificate.
+~~If the default container listener is secured, the container identity cert will be used as the PKI.  This PKI can be updated when the container is created.  By including the property `container.listener.pki.alias`, the automation scripts will add this key to the default listener.  If this key has a different password then the keystore, the property `container.listener.pki.alias.password` needs to be supplied.  The keystore, `container.secure.keystore`, must include both the key and the certificate.~~
 
-`--deployFiles` command line option is used to add extra files into a container deploy directory.  This is a final step that occurs.  This can be used for any custom policies or route file definitions.
+`--deployFiles` command line option is used to add extra files into a container deploy directory.  This is a final step 
+that occurs.  This can be used for any custom policies or route file definitions.
+
+`--custompolicies` command line option is used to extract any custom policy jar file into the /deploy directory after 
+the container is created and configured.
 
 #### Configure Container Properties
 When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs to be added into the ND container property file.
@@ -436,19 +427,19 @@ When ND is writing any analytical data through PM, the remote writer needs to be
 ```
 
 To view all services that are deployed into any container, the jetty information servlet needs to be enabled.
-```
+``` 
     # com.soa.platform.jetty.cfg
     jetty.information.servlet.enable=true
 ```
 
 Add the following property if it is required that ND follows all redirects
-```
+``` 
     # com.soa.http.client.core.cfg ND only
     http.client.params.handleRedirects=true
 ```
 
 
-```
+``` 
     # com.soa.binding.http.cfg ND only
     http.in.binding.virtualhost.endpoint.selection.enabled=false
 ```
@@ -461,7 +452,7 @@ com.soa.binding.soap
 | soap.in.binding.component.supportGetWsdl | true | Might want to disable this to block WSDL access from Internet |
 | soap.out.binding.component.checkForNon500Faults | false | This prevents false XML parsing errors for non-500, non-fault responses |
 
-```
+``` 
     # com.soa.binding.soap.cfg ND only
     soap.in.binding.virtualhost.endpoint.selection.enabled=false
     soap.in.binding.component.supportGetWsdl=true
@@ -469,21 +460,21 @@ com.soa.binding.soap
 ```
 
 
-```
+``` 
     # com.soa.compass.settings.cfg
     compass.engine.optimizer.schedule=true
     compass.engine.optimizer.schedule.period=600
 ```
 
 
-```
+``` 
     # com.soa.rollup.configuration.cfg
     monitoring.rollup.configuration.countersForEachRun= 0
 ```
 
 It is recommended that all rollups are disabled.  The rollups tables should be partitioned using database scripts.  
 Include the following properties to disable the rollups.
-```
+``` 
     # com.soa.rollup.delete.old.cfg
     monitoring.delete.rollup.MO_ROLLUP15.enable=true
     monitoring.delete.rollup.MO_ROLLUPDATA.enable=true
@@ -496,19 +487,19 @@ Include the following properties to disable the rollups.
 ```
 
 Enable only the valid protocols that will be accepted.  Add the following property to the container property file.
-```
+``` 
     # com.soa.http.client.core.cfg 'SSLv3,TLSv1,TLSv1.1,TLSv1.2'
     https.socket.factory.enabledProtocols=
 ```
 
 Set the search index.
-```
+``` 
     # com.soa.search.cfg
     com.soa.search.index.merge.maxSegmentSize=10000000
 ```
 
 Configure the API Portal (CM) properties.
-```
+``` 
     # com.soa.atmosphere.console.cfg CM only
     security.config.basicAuth=false
     security.config.realm=atmosphere.soa.com
@@ -529,21 +520,18 @@ When configuring email groups to send alerts too.
     email.sender=
 ```
 
-When configuring a Policy or Community Manager containers, it is <span style="color:red">*required</span> to include `audit.maxContentSize`.  
-
 ```
     # com.soa.policy.handler.audit
     audit.maxContentSize=
 ```
 
 ```
-    # com.soa.admin.console
+    # com.soa.admin.console 
     admin.console.domain.enabled=
 ```
 
 ### Deployment Zone configuration
-Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added
-into an existing cluster.
+Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added into an existing cluster.
 New properties are introduced and only required for ND containers:
 
 ```
@@ -557,7 +545,7 @@ New properties are introduced and only required for ND containers:
 
 The location fields contain the GPS location of the datacenter that the containers belong too.  So, if the datacenter existed in LA, the value would be `34.0522,-118.2437`.
 
-The CM admin fields contain information on being able to invoke CM specific APIs.  For the CM address, it is NOT required to include the
+The CM admin fields contain information on being able to invoke CM specific APIs.  For the CM address, it is NOT required to include the 
 context root used to reach the portal.
 
 #### Tenant Creation
@@ -566,7 +554,7 @@ Automation scripts have the ability to create one (1) to many new tenants or add
 
 For every array element under the tenants attribute will be used to create a new tenant will be created.
 
-For every array element unter the themes, inside of the tenants array, a new theme will be added for the tenant was created.  This
+For every array element unter the themes, inside of the tenants array, a new theme will be added for the tenant was created.  This 
 shoulc only be used for extra themes that need to be added, beyone the initial theme that was created at time of tenant creation.
 
 The deployment zone array is to add deployment zones to the created tenant.  Each array element will add a new deployment zone.
@@ -575,8 +563,6 @@ The deployment zone array is to add deployment zones to the created tenant.  Eac
     #TenantProperties
     tenant.create=false
     #{
-    #   'contextRoot': '/mdn', \
-    #  	'userRolesDenied': '', \
     #	'tenants': [{\
     #       'contactEmailAddress': 'no-reply@open', \
     #  		'virtualHosts': 'localhost,enord-macbook-pro.local,monsanto.akana.local', \
@@ -593,13 +579,21 @@ The deployment zone array is to add deployment zones to the created tenant.  Eac
     #       "deploymentzones": [{\
     #           "name": "apigateway"\
     #       }]\
+    #		"themes": [{\
+    #			"name": "simpledev",\
+    #			"virtualhost": "developer-localhost",\
+    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
+    #			"themeimpl": "default"
+    #		}]\
     #  	}], \
+    #  	'contextRoot': '/mdn', \
+    #  	'userRolesDenied': ''\
     #}
     portal.definition=
 ```
 
-The older properties are still supported when creating a single tenant.  Using this will only allow you to create a single tenant and not
-add extra themes.  When using this method, you are warned with the following warning `Consider migrating to using the tenants object,
+The older properties are still supported when creating a single tenant.  Using this will only allow you to create a single tenant and not 
+add extra themes.  When using this method, you are warned with the following warning `Consider migrating to using the tenants object, 
 which supports multiple tenants and themes`.
 
 ```
@@ -690,13 +684,13 @@ com.soa.container.configuration.service
     # com.soa.container.configuration.service
     container.refresh.trigger.repeatInterval=120000
 ```    
-
+   
 com.soa.mp.core
 
 | Property | Setting | Notes |
 |--|--|--|
 | rules.expiration.trigger.repeatInterval | 60000 (1 minute) |Interval between checking of the expiration of a Denial of Service (DoS) rule action expiration (default is one second) |
-```
+``` 
     # com.soa.mp.core
     rules.expiration.trigger.repeatInterval=60000
 ```    
@@ -752,7 +746,7 @@ Install the proper features.  Example property files can be located in the examp
 + LaaS Support
     * For CM nodes only
         - community.manager.laas
-
+        
 + Envision Support
     * envision=true
     * envision.metrics.collector
@@ -760,7 +754,7 @@ Install the proper features.  Example property files can be located in the examp
     * envision.policy.manager.service.extensions=false
     * envision.policy.manager.analytics.security.provider=false
     * envision.sample.demo.charts
-
+    
 * Add Monitoring to any container
     * admin.monitoring.tool
 + Optional Features
@@ -789,7 +783,7 @@ Install the proper features.  Example property files can be located in the examp
     	- header.activity
     * Normalize
     	- normalize.activity
-
+    	
 ##### Custom Features
 
 Custom features that are created for a specific client can be installed when using automation.  This is a comma separated field that contains the namespace of the feature that needs to be installed.
@@ -854,7 +848,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
       	}] \
     }
 ```
-
+        
 #### Property File
 
 ```
@@ -872,8 +866,11 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     container.admin.console.restricted=false
     container.admin.console.basicauth.enabled=true
     # Customize the container default listener settings.  This is only conducted if values exist, otherwise defualts are used.
+    # deprecated use the listener property below
     container.listener.minimum=
+    # deprecated use the listener property below
     container.listener.maximum=
+    # deprecated use the listener property below
     container.listener.idleTimeout=
     container.listener.pki.alias=
     container.listener.pki.alias.password=
@@ -886,7 +883,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # The trusted certificates that need to be added into this containers cacerts
     container.secure.trusted.keystore=
     container.secure.trusted.storepass=
-
+    
     # FeaturesSection
     ## Policy Manager
     managed.services=false
@@ -894,12 +891,12 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     policy.manager.services=true
     scheduled.jobs=false
     security.services=false
-
+    
     ## Network Directory
     network.director=false
     community.manager.oauth.provider.agent=false
     oauth.provider.agent=false
-
+    
     ## Community Manager
     community.manager=false
     community.manager.apis=false
@@ -909,14 +906,14 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ## 8.0 features
     elastic.search=false
     grant.provisioning.ui=false
-
+    
     ## Miscellaneous
     agent.foundation=false
     delegate=false
     delegate.access.point=false
     ping.support=false
     tomcat.agent=false
-
+    
     ## Envision
     envision=false
     envision.metrics.collector=false
@@ -924,10 +921,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     envision.policy.manager.service.extensions=false
     envision.policy.manager.analytics.security.provider=false
     envision.sample.demo.charts=false
-
-    ## Lifecycle Manager
-    lifecycle.manager=false
-
+    
     # PluginSection
     api.security.policy.handler=false
     cluster.support=false
@@ -944,16 +938,14 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     community.manager.default.theme=false
     community.manager.simple.developer.theme=false
     api.platform.plugin=false
-    elasticsearch.log4j.appender.plugin=false
-
+    
     # ToolSection
     72.upgrade=false
     admin.monitoring.tool=true
-    admin.health.tool=true
     80.upgrade=false
     82.upgrade=false
-    83.upgrade=false
-
+    admin.health.tool=true
+    
     # OptionPacks
     # include if siteminder is required
     sitemider=false
@@ -982,10 +974,10 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     header.activity=false
     # Normalize
     normalize.activity=false
-
+    
     # Custom Features
     custom.features=
-
+    
     #ConfigurationFiles
     database.configure=true
     proxy.filename=
@@ -993,7 +985,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # Format needs to be the following 'com.soa.http.route-pm1.cfg;http://pm.host.com:9900/*;http://lb.host.com'
     # Needed when routing requests back through a load balance: https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607
     route.definitions=
-
+    
     # ND specific properties
     # just the address to pm like http://<hostname>:<port>
     wsmex.address=
@@ -1012,6 +1004,24 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     cm.admin.password=
     # Register ND to PM
     register.nd=true
+    # to create listeners on any type of container.
+    #{
+    #    'Endpoints': [{
+    #        'name':<name of listener>,
+    #        'description':<description of listener>,
+    #        'bindtoall':<True/False>,
+    #        'protocol':<http/https>,
+    #        'host':<host name>,
+    #        'port':<port number>,
+    #        'contextPath':<context path>,
+    #        'minimumThreadPool':<minimum>,
+    #        'maximumThreadPool':<maximum>,
+    #        'idleThreadTimeout':<idle timeout>,
+    #        'alias':<alias of key in keystore>,
+    #        'aliasPassword':<alias of password>
+    #    }]
+    #}
+    listener=
     # all required listeners to be created for nd.  This is a comma seperated field that consistes of at least 1 entries 'listener_name:hostname:port:protocol:idleTimeout:poolMax:poolMin:bind:alias'.
     # if ND is secured, automation needs to add an endpoint to the listener.  The automation will use the 'container.secure.keystore' to search from the proper certificate for each listener
     nd.listener=
@@ -1026,32 +1036,32 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     cluster.listener=
     # Used when creating a new cluster to set the location of the cluster
     cluster.location=
-
+    
     # disable the remote usage writer in ND containers
     # com.soa.monitor.usage
     remote.writer.enabled=true
-
+    
     # com.soa.platform.jetty.cfg
     jetty.information.servlet.enable=false
-
+    
     # com.soa.http.client.core.cfg ND only
     http.client.params.handleRedirects=true
-
+    
     # com.soa.binding.http.cfg ND only
     http.in.binding.virtualhost.endpoint.selection.enabled=false
-
+    
     # com.soa.binding.soap.cfg ND only
     soap.in.binding.virtualhost.endpoint.selection.enabled=false
     soap.in.binding.component.supportGetWsdl=true
     soap.out.binding.component.checkForNon500Faults=false
-
+    
     # com.soa.compass.settings.cfg
     compass.engine.optimizer.schedule=true
     compass.engine.optimizer.schedule.period=600
-
+    
     # com.soa.rollup.configuration.cfg
     monitoring.rollup.configuration.countersForEachRun= 0
-
+    
     # com.soa.rollup.delete.old.cfg
     monitoring.delete.rollup.MO_ROLLUP15.enable=false
     monitoring.delete.rollup.MO_ROLLUPDATA.enable=false
@@ -1061,35 +1071,35 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     monitoring.delete.rollup.MO_ROLL_ORG_D.enable=false
     monitoring.delete.rollup.MO_ROLL_ORG_H.enable=false
     monitoring.delete.usage.enable=false
-
+    
     # com.soa.http.client.core.cfg 'SSLv3,TLSv1,TLSv1.1,TLSv1.2'
     https.socket.factory.enabledProtocols=
-
+    
     # com.soa.search.cfg
     com.soa.search.index.merge.maxSegmentSize=10000000
-
+    
     # com.soa.atmosphere.console.cfg CM only
     security.config.basicAuth=false
     security.config.realm=atmosphere.soa.com
     atmosphere.console.config.userDefinedScriptVersion=
     atmosphere.default.policies=
-
+    
     # com.soa.log
     log4j.appender=
     log4j.location=
-
+    
     # com.soa.framework
     email.sender=
-
+    
     # com.soa.policy.handler.audit
     audit.maxContentSize=10000000
-
+    
     # com.soa.admin.console
     admin.console.domain.enabled=
-
+    
     # grid cache true or false
     grid.cache=false
-
+    
     #TenantProperties
     tenant.create=false
     #portal.definition={
@@ -1108,10 +1118,19 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #  		"consoleAddress": "https://localhost:19910/devportal", \
     #  		"adminEmail": "admin@open", \
     #  		"adminPassword": "password"\
+    #       "deploymentzones": [{\
+    #           "name": "apigateway"\
+    #       }]\
+    #		"themes": [{\
+    #			"name": "simpledev",\
+    #			"virtualhost": "developer-localhost",\
+    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
+    #			"themeimpl": "default"
+    #		}]\
     #  	}] \
     #}
     portal.definition=
-
+    
     #HardeningProperties
     # Hardening properties are set to recommended values.  Change if desired.  For details review: http://docs.akana.com/sp/platform-hardening_2.0.html
     container.harden=true
@@ -1119,7 +1138,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # com.soa.http.client.core
     ## http.client.params.cookiePolicy
     harden.ignoreCookies=ignoreCookies
-
+    
     # com.soa.transport.jetty
     ## session.manager.factory.secureCookies
     harden.secureCookies=true
@@ -1127,24 +1146,24 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     harden.enabledProtocols=SSLv2HELLO,TLSv1,TLSv1.1, TLSv1.2
     ## http.incoming.transport.config.cipherSuites
     harden.cipherSuites=SSL_RSA_WITH_RC4_128_MD5,SSL_RSA_WITH_RC4_128_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_DSS_WITH_AES_128_CBC_SHA,SSL_RSA_WITH_3DES_EDE_CBC_SHA,SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA
-
+    
     # Community Manager containers
     # com.soa.atmosphere.forwardproxy
     ## forward.proxy.allowedHosts
     harden.cm.allowed.hosts==<Network Director Host(s) and/or Load Balancer host>
-
+    
     # com.soa.http.client.core
     ## block.headers.interceptor.blocked
     harden.cm.interceptor.blocked=content-type,content-length,content-range,content-md5,host,expect,keep-alive,connection,transfer-encoding
     ## header.formatter.interceptor.templates
     harden.cm.template=
-
+    
     # com.soa.api.security
     ## com.soa.api.security.cache.expirationPeriod
     harden.cache.expirationPeriod=3600000
     ## com.soa.api.security.cache.refreshTime
     harden.cache.refreshTime=300000
-
+    
     # Network Directory containers
     # com.soa.http.client.core
     ## block.headers.interceptor.blocked
@@ -1152,18 +1171,18 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ## header.formatter.interceptor.templates
     harden.nd.template=replace=X-Forwarded-Host:{host}
     harden.nd.replace.host={host}
-
+    
     # com.soa.api.security
     ## com.soa.api.security.cache.expirationPeriod
     harden.nd.security.expiration.period=3600000
     ## com.soa.api.security.cache.refreshTime
     harden.nd.security.refresh.time=300000
-
+    
     # Policy and Community Manager containers
     # com.soa.console.csrf
     ## org.owasp.csrfguard.Enabled
     harden.cm.csrf.enabled=true
-
+    
     # com.soa.console.xss
     ## exceptionURLs
     harden.cm.exception.urls=#COMMA DELIMITED LIST]
@@ -1171,12 +1190,12 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     harden.cm.keywords=#COMMA DELIMITED LIST]
     ## validate
     harden.cm.validate=#true|false]
-
+    
     # com.soa.atmosphere.console
     ## atmosphere.console.config.xFrameOptions (CM)
     ## xFrameOptions (PM)
     harden.cm.x.frame=#DESIRED HEADER]
-
+    
     #PerformanceProperties
     # Performance properties need to be set appropriately for your desired results.  Values currently set are for examples only.
     #    For details review: http://docs.akana.com/sp/performance-tuning.html
@@ -1187,44 +1206,44 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     performance.failureDataCaptureEnabled=true
     track.txBlockThresholdTime=false
     txBlockThresholdTime=0
-
+    
     # com.soa.client.subsystem
     pm.client.cache.cacheExpirationSecs=14400
     pm.client.cache.refresh.trigger.repeatInterval=300000
-
+    
     # com.soa.saml
     com.soa.saml.assertion.expiration=240
-
+    
     # Network Director Containers
     # com.soa.http.client.core
     ## http.connection.manager.maxTotal
     performance.connection.maxTotal=2000
     ## http.connection.manager.defaultMaxPerRoute
     performance.connection.defaultMaxPerRoute=1500
-
+    
     # com.soa.monitor.usage
     ## usage.queue.capacity
     performance.queueCapacity=10000
-
+    
     #com.soa.monitor.usage
     ## usage.batch.writer.usageBatchSize
     performance.usageBatchSize=50
-
+    
     # com.soa.monitor.usage
     ## usage.batch.writer.writeInterval
     performance.writeInterval=1000
-
+    
     # com.soa.vs.engine
     ## vs.capability.metadata.preloadInvokedServices
     performance.preloadInvokedServices=true
-
+    
     # com.soa.contract.enforcement
     ## contract.handler.framework.idleExpiration
     performance.framework.idleExpiration=259200
     ## contract.handler.framework.maxRefreshInterval
     performance.framework.makeFreshInterval=900
     contract.refresh.trigger.repeatInterval=300000
-
+    
     # com.soa.jbi
     ## lbha.endpoint.refresh.task.allowRemoval
     performance.endpoint.allowRemoval=false
@@ -1232,34 +1251,34 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     performance.endpoint.expirationInterval=3600000
     ## lbha.endpoint.refresh.task.maxrefreshInterval
     performance.endpoint.maxrefreshInterval=900000
-
+    
     # com.soa.auz.client (ND containers only)
     cached.auz.decision.service.cacheTimeout=300
     cached.auz.decision.service.expirationTimeInSeconds=14400
-
+    
     # com.soa.container.configuration.service
     container.refresh.trigger.repeatInterval=120000
-
+    
     # com.soa.mp.core
     rules.expiration.trigger.repeatInterval=60000
-
+    
     # Policy Manager Containers
     # com.soa.service.category
     ## service.category.manager.transactional.loadGifMetrics
     performance.loadGifMetrics=false
-
+    
     # com.soa.console
     ## workbench.search.PerformAutoSearch
     performance.performAutoSearch=true
-
+    
     # com.soa.metrics
     ## metrics.rollup.reporter.requireMetricsPolicy
     performance.requireMetricsPolicy=true
-
+    
     # com.soa.auz.operation (PM containers only)
     cached.auz.engine.operation.cacheTimeout=300
     cached.auz.engine.operation.expirationTimeInSeconds=14400
-
+    
     # Custom Properties to be added into any configuration category.
     custom.properties=
     #custom.properties={ \
@@ -1271,7 +1290,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #	    }]\
     #  	}] \
     #}
-
+    
     # com.soa.external.keystore
     com.soa.keystore.external.encrypted=
     com.soa.keystore.external.keyStoreType=
@@ -1285,7 +1304,7 @@ Copyright &copy; 2016 Akana, Inc. All Rights Reserved.
 
 ## Trademarks
 All product and company names herein may be trademarks of their registered owners.
-Akana, SOA Software, Community Manager, API Gateway, Lifecycle Manager, OAuth Server, Policy Manager, and Cloud
+Akana, SOA Software, Community Manager, API Gateway, Lifecycle Manager, OAuth Server, Policy Manager, and Cloud 
 Integration Gateway are trademarks of Akana, Inc.
 
 ## Akana, Inc.
