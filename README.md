@@ -1,5 +1,6 @@
+![Installer](images/roguewave.png)
+
 # Akana Automated Software Deployment
-![Installer](images/header.png)
 
 ## Installer Script
 The installer script is used manily to install the product.  At the time of installation, the installer script can create (`-c`) containers by invoking the container script below.
@@ -112,6 +113,19 @@ This feature is invoked with the following steps:
 
 This can be ran from any container in the environment.
 
+### HSM (External Keystore)
+
+
+
+### stdout log location
+
+The containers stdout can be changed to a custom location by including `std.log.location` property in the installer.properties
+file.  The script will update the startup.sh to this location.
+
+**Note:  This potentially code effect how many containers can be created on this installation.  If the location is set to 
+an absolute path, like `/var/www/akana/mycontainer.log`, this is where all containers would write too.  If the location 
+stays relative to the container, like `log/mycontainer.log`, multiple containers will continue to write to its appropriate
+local log directory.
    
 ## Property Files
 
@@ -119,20 +133,28 @@ This can be ran from any container in the environment.
 Passwords can be encrypted prior to storing them in any of the property files.  When passwords are encrypted the property `container.passwords.encrypted` needs to be set to true.
 
 The following steps are required to run the password encrypt utility.
+
 1. From the automation zip archive, extract the ps-encryption archive file.
 2. cd into the nodeLib directory.
 3. npm install
 4. npm install java
 5. node index.js <text to be encrypted>
 
+The scripts will encrypt all plain text passwords that are included in the property files after building the container.  
+At completion of the container build, the script will update all passwords to be encrypted and set `container.passwords.encrypted` 
+to `true`.
+
 ### Installer Property File
 
-```
+```properties
     #InstallSection
     # install.path and resources.location must be absolute
     install.path=/opt/akana_sw/
     resources.location=/opt/akana_sw/stage/resources/
-    features=<Update with all desired add on features>
+    features=akana-platform-8.2.4.zip,akana-api-platform-8.2.56.zip
+    jce.location=
+    ncipher.location=
+    stdout.log.location=
 ```
 
 if installing multiple feature packs, the features properties would look like:
@@ -207,7 +229,7 @@ MongoDB configuration is required when the feature `Akana MongoDB Support' (mong
 Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the 
 following fields with the correct values:
   
-```
+```properties
     #Mongo DB Configuration
     mongodb.thread=20
     mongodb.enabled=false
@@ -219,7 +241,7 @@ following fields with the correct values:
 
 #### Property File
 
-```
+```properties
     #InstallSection
     install.path=/opt/akana_sw/
     
@@ -360,7 +382,7 @@ created, the new ND container is then added into this cluster.
 Container location is used when adding a cluster or gateway container is added as a deployment zone inside the API Portal.  This needs to
  be a GPS location of the cluster or container.  This field needs to look something like ``.  These fields need to be set based on the 
  location you want to set.
-```
+```properties
     # Used to set the location for this container that is being created
     nd.location=
     # Used when creating a new cluster to set the location of the cluster
@@ -369,7 +391,7 @@ Container location is used when adding a cluster or gateway container is added a
 
 Listeners can be created for all containers.  If the `listener` property is provided, all default listeners are removed
 and the listener(s) defined in this property are created.  The following in the format of creating listeners:
-```
+```json
     listener={\
         'Endpoints':[{\
             'name':'default-https',\
@@ -409,9 +431,16 @@ different than the containing keystore.
 When securing listeners, PKI keys can also be automatically added onto the endpoints.  These certificates need to be added into a custom JKS and provided to the automation scripts.  The property files used for these certificates are  `container.secure.keystore`, `container.secure.storepass` and `container.secure.alias`.  If no JKS is provided an exception will occur, requiring that a JKS is required to add secured endpoints.
 
 ** Note: Deprecated use the listener property below
+
 ~~Default container listener can be customized by providing the `container.listener.minimum`, `container.listener.maximum` amd `container.listener.idleTimeout`.  These fields will be used to update the default listener that is created when building a container.  This is mostly recommended for the Policy Manager and Community Manager containers.~~
 
 ~~If the default container listener is secured, the container identity cert will be used as the PKI.  This PKI can be updated when the container is created.  By including the property `container.listener.pki.alias`, the automation scripts will add this key to the default listener.  If this key has a different password then the keystore, the property `container.listener.pki.alias.password` needs to be supplied.  The keystore, `container.secure.keystore`, must include both the key and the certificate.~~
+
+IBM MQ listeners is supported by including the appropriate feature jar file, 'com.soa.com.ibm.mq.merged-<version>.jar'.  
+The feature is then isstalled by including:
+```properties
+    mq.support=true
+```
 
 `--deployFiles` command line option is used to add extra files into a container deploy directory.  This is a final step 
 that occurs.  This can be used for any custom policies or route file definitions.
@@ -421,25 +450,25 @@ the container is created and configured.
 
 #### Configure Container Properties
 When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs to be added into the ND container property file.
-```
+```properties
 	# disable the remote usage writer in ND containers
     remote.writer.enabled=true
 ```
 
 To view all services that are deployed into any container, the jetty information servlet needs to be enabled.
-``` 
+```properties
     # com.soa.platform.jetty.cfg
     jetty.information.servlet.enable=true
 ```
 
 Add the following property if it is required that ND follows all redirects
-``` 
+```properties
     # com.soa.http.client.core.cfg ND only
     http.client.params.handleRedirects=true
 ```
 
 
-``` 
+```properties
     # com.soa.binding.http.cfg ND only
     http.in.binding.virtualhost.endpoint.selection.enabled=false
 ```
@@ -452,7 +481,7 @@ com.soa.binding.soap
 | soap.in.binding.component.supportGetWsdl | true | Might want to disable this to block WSDL access from Internet |
 | soap.out.binding.component.checkForNon500Faults | false | This prevents false XML parsing errors for non-500, non-fault responses |
 
-``` 
+```properties
     # com.soa.binding.soap.cfg ND only
     soap.in.binding.virtualhost.endpoint.selection.enabled=false
     soap.in.binding.component.supportGetWsdl=true
@@ -460,21 +489,21 @@ com.soa.binding.soap
 ```
 
 
-``` 
+```properties
     # com.soa.compass.settings.cfg
     compass.engine.optimizer.schedule=true
     compass.engine.optimizer.schedule.period=600
 ```
 
 
-``` 
+```properties 
     # com.soa.rollup.configuration.cfg
     monitoring.rollup.configuration.countersForEachRun= 0
 ```
 
 It is recommended that all rollups are disabled.  The rollups tables should be partitioned using database scripts.  
 Include the following properties to disable the rollups.
-``` 
+```properties
     # com.soa.rollup.delete.old.cfg
     monitoring.delete.rollup.MO_ROLLUP15.enable=true
     monitoring.delete.rollup.MO_ROLLUPDATA.enable=true
@@ -487,19 +516,19 @@ Include the following properties to disable the rollups.
 ```
 
 Enable only the valid protocols that will be accepted.  Add the following property to the container property file.
-``` 
+```properties
     # com.soa.http.client.core.cfg 'SSLv3,TLSv1,TLSv1.1,TLSv1.2'
     https.socket.factory.enabledProtocols=
 ```
 
 Set the search index.
-``` 
+```properties
     # com.soa.search.cfg
     com.soa.search.index.merge.maxSegmentSize=10000000
 ```
 
 Configure the API Portal (CM) properties.
-``` 
+```properties
     # com.soa.atmosphere.console.cfg CM only
     security.config.basicAuth=false
     security.config.realm=atmosphere.soa.com
@@ -508,24 +537,24 @@ Configure the API Portal (CM) properties.
 ```
 
 Configure the log4j appender and location.  If no appender is provided, it will default to `org.apache.log4j.RollingFileAppender`.  The location should be the directory that all logs will be sent too.
-```
+```properties
 	# com.soa.log
 	log4j.appender=
 	log4j.location=
 ```
 
 When configuring email groups to send alerts too.
-```
+```properties
     # com.soa.framework
     email.sender=
 ```
 
-```
+```properties
     # com.soa.policy.handler.audit
     audit.maxContentSize=
 ```
 
-```
+```properties
     # com.soa.admin.console 
     admin.console.domain.enabled=
 ```
@@ -534,7 +563,7 @@ When configuring email groups to send alerts too.
 Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added into an existing cluster.
 New properties are introduced and only required for ND containers:
 
-```
+```properties
     # Required when ND needs to invoke CM provided APIs.  Provide CM address only if CM is not deployed with PM.
     cm.address=
     cm.admin.user=
@@ -555,48 +584,47 @@ Automation scripts have the ability to create one (1) to many new tenants or add
 For every array element under the tenants attribute will be used to create a new tenant will be created.
 
 For every array element unter the themes, inside of the tenants array, a new theme will be added for the tenant was created.  This 
-shoulc only be used for extra themes that need to be added, beyone the initial theme that was created at time of tenant creation.
+should only be used for extra themes that need to be added, beyone the initial theme that was created at time of tenant creation.
 
 The deployment zone array is to add deployment zones to the created tenant.  Each array element will add a new deployment zone.
 
-```
+```properties
     #TenantProperties
     tenant.create=false
-    #{
-    #	'tenants': [{\
-    #       'contactEmailAddress': 'no-reply@open', \
-    #  		'virtualHosts': 'localhost,enord-macbook-pro.local,monsanto.akana.local', \
-    #  		'address': 'https://enord-macbook-pro.local:19910', \
-    #  		'url': 'https://enord-macbook-pro.local:19910', \
-    #  		'name': 'Monsanto Developer Network', \
-    #  		'theme': 'default', \
-    #  		'id': 'mdn', \
-    #  		'themeimpl': 'default', \
-    #  		'fromEmailAddress': 'no-reply@open', \
-    #  		'consoleAddress': 'https://enord-macbook-pro.local:19910/mdn', \
-    #  		'adminEmail': 'admin@open', \
-    #  		'adminPassword': 'password'\
-    #       "deploymentzones": [{\
-    #           "name": "apigateway"\
-    #       }]\
-    #		"themes": [{\
-    #			"name": "simpledev",\
-    #			"virtualhost": "developer-localhost",\
-    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
-    #			"themeimpl": "default"
-    #		}]\
-    #  	}], \
-    #  	'contextRoot': '/mdn', \
-    #  	'userRolesDenied': ''\
-    #}
-    portal.definition=
+    portal.definition={
+        'contextRoot': '/mdn', \
+        'userRolesDenied': '', \
+    	'tenants': [{\
+           'contactEmailAddress': 'no-reply@open', \
+      		'virtualHosts': 'localhost,enord-macbook-pro.local,monsanto.akana.local', \
+      		'address': 'https://enord-macbook-pro.local:19910', \
+      		'url': 'https://enord-macbook-pro.local:19910', \
+      		'name': 'Monsanto Developer Network', \
+      		'theme': 'default', \
+      		'id': 'mdn', \
+      		'themeimpl': 'default', \
+      		'fromEmailAddress': 'no-reply@open', \
+      		'consoleAddress': 'https://enord-macbook-pro.local:19910/mdn', \
+      		'adminEmail': 'admin@open', \
+      		'adminPassword': 'password'\
+           "deploymentzones": [{\
+               "name": "apigateway"\
+           }]\
+    		"themes": [{\
+    			"name": "simpledev",\
+    			"virtualhost": "developer-localhost",\
+    			"consoleaddress": "https://developer-localhost:19910/devportal",\
+    			"themeimpl": "default"
+    		}]\
+      	}] \
+    }
 ```
 
 The older properties are still supported when creating a single tenant.  Using this will only allow you to create a single tenant and not 
 add extra themes.  When using this method, you are warned with the following warning `Consider migrating to using the tenants object, 
 which supports multiple tenants and themes`.
 
-```
+```properties
     #TenantProperties
     # CM specific properties
     atmosphere.context.root=/mdn
@@ -626,7 +654,7 @@ on.  The following properties are used to move the admin console onto a differen
 configured to listen only on the localhost interface.  To configure the admin console to use basic auth, configure
 the basic auth option to be true.
 
-```
+```properties
 	container.admin.port=8900
     container.admin.console.localhost.only=false
     container.admin.console.restricted=false
@@ -643,7 +671,7 @@ com.soa.client.subsystems
 | pm.client.cache.cacheExpirationSecs | 14400 (4 hours) | Expiration time for cached authentication information (default is five minutes) |
 | pm.client.cache.refresh.trigger.repeatInterval | 300000 (5 minutes) | Refresh interval for cached authentication information (default is one minute) |
 
-```
+```properties
     # com.soa.client.subsystem
     pm.client.cache.cacheExpirationSecs=14400
     pm.client.cache.refresh.trigger.repeatInterval=300000
@@ -655,7 +683,7 @@ com.soa.saml
 |----------|---------|-------|
 | com.soa.saml.assertion.expiration | 240 (default) | SAML Assertion expiration time (default is four hours) |
 
-```
+```properties
     # com.soa.saml
     com.soa.saml.assertion.expiration=240
 ```
@@ -668,7 +696,7 @@ com.soa.auz.client
 | cached.auz.decision.service.expirationTimeInSeconds | 14400 (4 hours) | Expiration time for cached authorization decisions (default is 30 minutes) |
 
 
-```
+```properties
     # com.soa.auz.client (ND containers only)
     cached.auz.decision.service.cacheTimeout=300
     cached.auz.decision.service.expirationTimeInSeconds=14400
@@ -680,7 +708,7 @@ com.soa.container.configuration.service
 |--|--|--|
 | container.refresh.trigger.repeatInterval | 120000 (2 minutes) | Interval for checking for changes to container configuration (default is 15 seconds) |
 
-```
+```properties
     # com.soa.container.configuration.service
     container.refresh.trigger.repeatInterval=120000
 ```    
@@ -690,7 +718,7 @@ com.soa.mp.core
 | Property | Setting | Notes |
 |--|--|--|
 | rules.expiration.trigger.repeatInterval | 60000 (1 minute) |Interval between checking of the expiration of a Denial of Service (DoS) rule action expiration (default is one second) |
-``` 
+```properties
     # com.soa.mp.core
     rules.expiration.trigger.repeatInterval=60000
 ```    
@@ -788,7 +816,7 @@ Install the proper features.  Example property files can be located in the examp
 
 Custom features that are created for a specific client can be installed when using automation.  This is a comma separated field that contains the namespace of the feature that needs to be installed.
 
-```
+```properties
     # Custom Features
     custom.features=
 ```
@@ -803,23 +831,22 @@ Additional properties can be added into any category.  These are useful when a c
 
 These properties are added by including the following property in any container property file:
 
-```
+```properties
     # Custom Properties to be added into any configuration category.
-    custom.properties=
-    #custom.properties={ \
-    #	"pids": [{ \
-    #  	    "pid": "<name of pid, like com.soa.log>", \
-    #  	    "properties": [{\
-    #  		    "property": "name of property, like log4j.appender.SYSLOG>", \
-    #  		    "value": "<value of property to be set"
-    #	    }]\
-    #  	}] \
-    #}
+    custom.properties={ \
+    	"pids": [{ \
+      	    "pid": "<name of pid, like com.soa.log>", \
+      	    "properties": [{\
+      		    "property": "name of property, like log4j.appender.SYSLOG>", \
+      		    "value": "<value of property to be set"
+    	    }]\
+      	}] \
+    }
 ```
 
 If it was required to add SYSLOG into the `com.soa.log` category, the property would look like:
 
-```
+```properties
     custom.properties={ \
     	"pids": [{ \
       	    "pid": "com.soa.log", \
@@ -851,7 +878,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
         
 #### Property File
 
-```
+```properties
     #CommonProperties
     container.name=pm
     container.key=
@@ -896,6 +923,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     network.director=false
     community.manager.oauth.provider.agent=false
     oauth.provider.agent=false
+    mq.support=false
     
     ## Community Manager
     community.manager=false
@@ -1087,6 +1115,9 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # com.soa.log
     log4j.appender=
     log4j.location=
+    
+    # ccom.soa.scheduler.quartz
+    org.quartz.scheduler.enabled=true
     
     # com.soa.framework
     email.sender=
@@ -1300,7 +1331,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
 ```
 
 ## Copyright
-Copyright &copy; 2016 Akana, Inc. All Rights Reserved.
+Copyright &copy; 2017 RogueWave, Inc. All Rights Reserved.
 
 ## Trademarks
 All product and company names herein may be trademarks of their registered owners.
