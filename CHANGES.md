@@ -4,6 +4,10 @@ v8.4.6
 
 * Fix for when Elastic Search global minimum nodes being NONE
 
+* Miscellanous document updates
+
+* Changes to the spinner to be a progress bar
+
 ---
 
 v8.4.5

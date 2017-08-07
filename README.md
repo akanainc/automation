@@ -237,7 +237,20 @@ following fields with the correct values:
     mongodb.port=
     mongodb.password=
     mongodb.username=
+    mongo.authSource=
+    mongo.authMechanism=
+    mongo.databasename=
+    mongo.connect.timeout=
+    mongo.socket.timeout=
+    mongo.min.poolSize=
+    mongo.max.poolSize=
+    mongo.wait.queue=
+    mongo.wait.queue.timeout=
 ```
+
+Use `mongodb.username` and `mongodb.password` after setting the user access role on each database (authorization).
+
+Use `mongo.authSource` and `mongo.authMechanism` if [authentication](https://docs.mongodb.com/v3.2/core/authentication) is enabled.
 
 #### Property File
 
@@ -313,6 +326,15 @@ following fields with the correct values:
     mongodb.port=
     mongodb.password=
     mongodb.username=
+    mongo.authSource=
+    mongo.authMechanism=
+    mongo.databasename=
+    mongo.connect.timeout=
+    mongo.socket.timeout=
+    mongo.min.poolSize=
+    mongo.max.poolSize=
+    mongo.wait.queue=
+    mongo.wait.queue.timeout=
 ```
 
 ### Container Property Files
@@ -559,6 +581,8 @@ When configuring email groups to send alerts too.
     admin.console.domain.enabled=
 ```
 
+
+
 ### Deployment Zone configuration
 Deployment Zones are automatically configured when either creating a new cluster or a new ND is registered and NOT added into an existing cluster.
 New properties are introduced and only required for ND containers:
@@ -646,8 +670,203 @@ which supports multiple tenants and themes`.
     tenant.create=true
 ```
 
+#### ElasticSearch Configuration
+ElasticSearch has three configuration settings: `embeddedConfig`, `transportClientConfig`, and `clientOnlyConfig`.
+Typical non-production environment will use `embeddedConfig` and `transportClientConfig` is needed for production environment.
+
+Sample `embeddedConfig`:
+```properties
+elastic.search.configuration = { \
+	"shards" : 2, \
+	"replicas" : 1, \
+	"embeddedConfig" : { \
+		"clusterName" : "MyESCluster", \
+		"minimumMasterNodes" : 2, \
+		"multicastEnabled" : False, \
+		"nodeName" : "MyESCluster_node_1", \
+		"indexLocation" : "/var/akana/index", \
+		"networkBindHost" : "0.0.0.0", \
+		"networkPublishHost" : "localhost", \
+		"transportPort" : 9300, \
+		"httpPort" : 9200, \
+		"httpEligible" : False, \
+		"masterEligible" : True, \
+		"isDataNode" : True \
+	} \
+}
+```
+
+Sample `transportClientConfig`: 
+```properties
+elastic.search.configuration = { \
+	"shards" : 2, \
+	"replicas" : 1, \
+	"transportClientConfig" : { \
+		"clusterName" : "MyESCluster", \
+		"esServerUrl" : "http://escluster1"
+	} \
+}
+```
+
+Sample `clientOnlyConfig`:
+```properties
+elastic.search.configuration = { \
+	"shards" : 2, \
+	"replicas" : 1, \
+	"clientOnlyConfig" : { \
+		"clusterName" : "MyESCluster", \
+		"masterHostUrl" : "http://masterESnode", \
+		"multicastEnabled" : False, \
+		"nodeName" : "MyESCluster_node_1", \
+		"networkBindHost" : "0.0.0.0", \
+		"networkPublishHost" : "localhost", \
+		"transportPort" : 9300, \
+	} \
+}
+```
+
+#### Domain Configuration
+Domain configuration on CM can be configured with properties file containing `domains` in the file name. Current automation supports configuration of OIDC Relying Party.
+OAUTH provider domain can be configured, but only for existing CM deployment as OAUTH domain requires platform identity to be defined ahead of time (cannot be automated).
+
+Sample `demo_domains.properties` which configures Auth0 OIDC Relying Party Domain:
+
+```properties
+#
+# Environment values 
+#
+demo.rp.domain.name=Auth0 OpenID Connect Relying Party
+demo.rp.bridge.appid=4QOVXqgg7DsK4m5MiFfirknxhEt2DX30
+demo.rp.bridge.secret=xm3vkTrLLohE38QiReXrrvC8aC7aivt7U8i06wAZSDG9NrV5NBAlVa8WLNIehchh
+demo.rp.base.url=https://bkwon.auth0.com
+
+#
+# Demo domains 
+#
+demo.domains = [ \
+	{ \
+		"name" : "%demo.rp.domain.name%", \
+		"desc" : "Auth0 OpenID Connect Relying Party", \
+		"type" : "DOMAINTYPE_RP", \
+		"config" : "demo.rp.config" \
+	}]
+
+#
+# All domain configuration details follow
+#
+
+demo.rp.config = { \
+	%demo.rp.page2.cfg.method%, \
+	%demo.rp.page3.provider%, \
+	%demo.rp.page4.authentication%, \
+	%demo.rp.page5.app%, \
+	%demo.rp.page6.token%, \
+	%demo.rp.page7.user%, \
+	"cachedProviderConfig" : "\%demo.rp.part2\%" \
+}
+
+demo.rp.page2.cfg.method = \
+	"configMethod" : "metadata_edit", \
+	"wellknownConfigURL" : "%demo.rp.base.url%/.well-known/openid-configuration"
+	
+demo.rp.page3.provider = \
+	"issuer" : "%demo.rp.base.url%", \
+	"jwksUri" : "%demo.rp.base.url%/.well-known/jwks.json", \
+	"endUserClaimsSource" : "userinfo"
+	
+demo.rp.page4.authentication = \
+	"authorizationEndpoint" : "%demo.rp.base.url%/authorize", \
+	"auzEndpointHttpMethod" : "GET", \
+	"responseTypeSelected" : "id_token", \
+	"responseMode" : "query", \
+	"scopesRequired" : [ \
+		"{inbound_request_scope}", \
+		"openid", \
+		"profile"], \
+	"useInboundOAuthClientID" : False, \
+	"transferInboundOAuthClientRedirectUri" : False, \
+	"transferInboundOAuthGrantID" : True, \
+	"prompt" : ["login", "consent", "select_account", "delegate"]
+	
+demo.rp.page5.app = \
+	"appId" : "%demo.rp.bridge.appid%", \
+	"isPlatformIdentity" : False, \
+	"appSecret" : "%demo.rp.bridge.secret%"
+	
+demo.rp.page6.token = \
+	"tokenEndpoint" : "%demo.rp.base.url%/oauth/token", \
+	"clientAuthenticationMethodSelected" : "client_secret_basic", \
+	"JWTValidationConstraints" : { \
+		"isSymmetrickeyBase64Encoded" : True \
+	}
+
+demo.rp.page7.user = \
+	"userinfoEndpoint" : "%demo.rp.base.url%/userinfo", \
+	"userinfoEndpointHttpMethod" : "GET", \
+	"claimNamesMapping" : { \
+		"subjectClaimName" : "sub", \
+		"givenNameClaimName" : "given_name", \
+		"lastNameClaimName" : "family_name", \
+		"emailClaimName" : "email" \
+	}
+
+demo.rp.part2 = { \
+	"response_types_supported" : [ \
+			"code", "code id_token", "code token", "code id_token token", \
+			"token", "id_token" ,"id_token token"], \
+	"token_endpoint_auth_methods_supported" : [ \
+			"client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none"], \
+	"response_modes_supported" : [ \
+			"query", "fragment", "form_post"], \
+	"grant_types_supported" : [ \
+			"authorization_code", "implicit", "password", "client_credentials", \
+			"urn :ietf:params:oauth:grant-type:jwt-bearer"], \
+	"id_token_signing_alg_values_supported" : [ \
+			"HS256", "HS384", "HS512", \
+			"RS256", "RS384", "RS512", \
+			"ES256", "ES384", "ES512", \
+			"PS256", "PS384", "PS512"], \
+	"id_token_encryption_alg_values_supported" : [ \
+			"RSA1_5", "RSA-OAEP", "RSA-OAEP-256", \
+			"A128KW", "A192KW", "A256KW", \
+			"A128GCMKW", "A192GCMKW", "A256GCMKW", \
+			"dir"], \
+	"id_token_encryption_enc_values_supported" : [ \
+			"A128CBC-HS256", "A192CBC-HS384", "A256CBC-HS512", \
+			"A128GCM", "A192GCM", "A256GCM"], \
+	"userinfo_signing_alg_values_supported" : [ \
+			"HS256", "HS384", "HS512", \
+			"RS256", "RS384", "RS512"], \
+	"userinfo_encryption_alg_values_supported" : [ \
+			"RSA1_5", "RSA-OAEP", "A128KW", "A256KW"], \
+	"userinfo_encryption_enc_values_supported" : [ \
+			"RSA1_5", "RSA-OAEP", "A128KW", "A256KW"], \
+	"token_endpoint_auth_signing_alg_values_supported" : [ \
+			"HS256", "HS384", "HS512", \
+			"RS256", "RS384", "RS512"], \
+	"selected_response_types_supported" : [], \
+	"selected_token_endpoint_auth_methods_supported" : [], \
+	"selected_response_modes_supported" : [], \
+	"selected_grant_types_supported" : [], \
+	"selected_id_token_signing_alg_values_supported" : [],  \
+	"selected_id_token_encryption_alg_values_supported" : [], \
+	"selected_id_token_encryption_enc_values_supported" : [], \
+	"selected_userinfo_signing_alg_values_supported" : [], \
+	"selected_userinfo_encryption_alg_values_supported" : [], \
+	"selected_userinfo_encryption_enc_values_supported" : [], \
+	"selected_token_endpoint_auth_signing_alg_values_supported" : [], \
+	"scopes_supported" : [] \
+}
+```
+
+#### Lifecycle Coordinator
+Automation currently will only install the Lifecycle Coordinator feature.  Note that there is required tasks that need to be done in the /admin console.
+
+* `database.coordinator=true` on CM container properties will install one of the database schemas. The Lifecycle Coordinator Schema will need to be installed manually on the /admin console.
+* `lifecycle.coordinator=true` on CM container properties will install the feature to the container.
+
 #### Hardening Tasks
-These tasks are the implementation of the [Hardening 2.0](http://docs.akana.com/sp/platform-hardening_2.0.html) recommendations.
+These tasks are the implementation of the [Hardening 2.0](http://docs.akana.com/sp/platform-hardening_8.4.html) recommendations.
 
 During hardening it is recommended to run the admin console on a port different than the actual containers are listening
 on.  The following properties are used to move the admin console onto a different port.  The admin console can also be
@@ -659,6 +878,14 @@ the basic auth option to be true.
     container.admin.console.localhost.only=false
     container.admin.console.restricted=false
     container.admin.console.basicauth.enabled=true
+```
+
+The Metadata API includes details about the container, such as public keys, internal IP addresses and file locations, which you probably don't want to share broadly. 
+This information could potentially aid an attacker in fingerprinting and enumerating the Policy Manager application or discovering how some of the Java servlets are configured.
+To secure the metadata API add the following property to the container properties:
+
+```properties
+    secure.metadata.service=true
 ```
 
 #### Performance Tasks
