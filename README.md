@@ -258,6 +258,12 @@ Use `mongodb.username` and `mongodb.password` after setting the user access role
 
 Use `mongo.authSource` and `mongo.authMechanism` if [authentication](https://docs.mongodb.com/v3.2/core/authentication) is enabled.
 
+If oauth grants are needed to be migrated to mongo, include:
+
+```properties
+    use.oauth.grants=true
+```
+
 #### Property File
 
 ```properties
@@ -400,6 +406,36 @@ The following lists what is required based off of the container type:
             + harden.nd.replace.host
             + harden.nd.security.expiration.period
             + harden.nd.security.refresh.time
+            
+When connecting to a remote master password, the following properties are needed.  This also supports when the PM administrator password is different than what is on the PM admin console.
+```properties
+    pm.master.address=
+    pm.master.user=
+    pm.master.password=
+```
+
+If PM admin console is being validated and the administrator and password is different than the current building container, provide the following properties:
+```properties
+    pm.admin.console=
+    # if the PM admin access is different from this container, set the proper values here
+    pm.admin.user=
+    pm.admin.password=
+```
+
+When building a sharded MongoDB environment, a couple different steps need to be followed.  First a new row needs to be added to the database.  This will contain the next container key that will be used.  These all need to be numeric values.  Run the following SQL against the database:
+```sql
+    INSERT INTO SEQUENCECONTROL2 (NAME, CURRENTVALUE, INITIALVALUE, INCR, MAX_VALUE, CACHESIZE, RESETTOINITIAL) VALUES ('GLOCDATACENTER', 1000000, 1000000, 1, 50000000, 1, 'N');
+```
+Now, on the command line, include the value of this new field:
+```properties
+    --datacentername <Value from SEQUENCECONTROL2>
+```
+When the scripts run, it will call the counterAPI to receive the next proper value for the container key of this new container.
+
+When deploying a standalone CM container that has admin access, it is recommended to change the PM context route.  Include the following property:
+```properties
+    pm.context.path=
+```
 
 Automation supports building route files.  For more information on route files see https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607.  
 In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.
@@ -593,6 +629,12 @@ Configure the log4j appender and location.  If no appender is provided, it will 
 	# com.soa.log
 	log4j.appender=
 	log4j.location=
+```
+
+Configure the jetty (ncsa) logs by adding the following properties:
+```properties
+    ncsa.access.log.enable=true
+    ncsa.access.log.filename=${product.home.dir}/instances/${container.name}/log/jetty_access_yyyy_mm_dd.log
 ```
 
 When configuring email groups to send alerts too.
@@ -934,6 +976,12 @@ the basic auth option to be true.
     container.admin.console.basicauth.enabled=true
 ```
 
+When running the admin console on a different interface, the system.properties file needs to be properly configured.
+```properties
+    container.admin.host=
+    container.admin.bindToAll=true
+```
+
 The Metadata API includes details about the container, such as public keys, internal IP addresses and file locations, which you probably don't want to share broadly.
 This information could potentially aid an attacker in fingerprinting and enumerating the Policy Manager application or discovering how some of the Java servlets are configured.
 To secure the metadata API add the following property to the container properties:
@@ -1166,7 +1214,9 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # this is used for the hostname unless the scripts pass in '--hostname'
     container.host=0.0.0.0
     container.port=9900
+    container.admin.host=
     container.admin.port=8900
+    container.admin.bindToAll=true
     container.admin.user=administrator
     container.admin.password=password
     container.passwords.encrypted=false
@@ -1191,7 +1241,13 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # The trusted certificates that need to be added into this containers cacerts
     container.secure.trusted.keystore=
     container.secure.trusted.storepass=
-
+    container.deploy.files=
+    container.custom.policies=
+    # Key that is used during verification when calling remote APIs
+    certificate.verification.alias=
+    certificate.verification.alias.password=
+    secure.metadata.service=false
+    
     # FeaturesSection
     ## Policy Manager
     managed.services=false
@@ -1199,13 +1255,13 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     policy.manager.services=true
     scheduled.jobs=false
     security.services=false
-
+    
     ## Network Directory
     network.director=false
     community.manager.oauth.provider.agent=false
     oauth.provider.agent=false
     mq.support=false
-
+    
     ## Community Manager
     community.manager=false
     community.manager.apis=false
@@ -1215,14 +1271,15 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ## 8.0 features
     elastic.search=false
     grant.provisioning.ui=false
-
+    use.oauth.grants=true
+    
     ## Miscellaneous
     agent.foundation=false
     delegate=false
     delegate.access.point=false
     ping.support=false
     tomcat.agent=false
-
+    
     ## Envision
     envision=false
     envision.metrics.collector=false
@@ -1230,7 +1287,11 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     envision.policy.manager.service.extensions=false
     envision.policy.manager.analytics.security.provider=false
     envision.sample.demo.charts=false
-
+    
+    ## Lifecycle Manager
+    lifecycle.manager=false
+    lifecycle.coordinator=false
+    
     # PluginSection
     api.security.policy.handler=false
     cluster.support=false
@@ -1247,14 +1308,18 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     community.manager.default.theme=false
     community.manager.simple.developer.theme=false
     api.platform.plugin=false
-
+    elasticsearch.log4j.appender.plugin=false
+    oauth.plugin=false
+    
     # ToolSection
     72.upgrade=false
     admin.monitoring.tool=true
+    admin.health.tool=true
     80.upgrade=false
     82.upgrade=false
-    admin.health.tool=true
-
+    83.upgrade=false
+    84.upgrade=false
+    
     # OptionPacks
     # include if siteminder is required
     sitemider=false
@@ -1283,10 +1348,10 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     header.activity=false
     # Normalize
     normalize.activity=false
-
+    
     # Custom Features
     custom.features=
-
+    
     #ConfigurationFiles
     database.configure=true
     proxy.filename=
@@ -1294,12 +1359,14 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # Format needs to be the following 'com.soa.http.route-pm1.cfg;http://pm.host.com:9900/*;http://lb.host.com'
     # Needed when routing requests back through a load balance: https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607
     route.definitions=
-
+    
     # ND specific properties
     # just the address to pm like http://<hostname>:<port>
     wsmex.address=
     # Used in multiple datacenter architecture, so ND registers against the master database.
     pm.master.address=
+    pm.master.user=
+    pm.master.password=
     # if the PM admin console is running on a different port, than wsmex please provide the address to the PM admin console.  'http://<hostname>:<port>
     pm.admin.console=
     # if the PM admin access is different from this container, set the proper values here
@@ -1345,32 +1412,40 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     cluster.listener=
     # Used when creating a new cluster to set the location of the cluster
     cluster.location=
-
+    outbound.listener={\
+      'alias':<name of alias in keystore>,\
+      'password':<password of alias, defaults to keystore password>\
+    }
+    
+    #System startup stuff (Linux SystemD only)
+    create.systemd.service.unit=false
+    use.sudo=false
+    
     # disable the remote usage writer in ND containers
     # com.soa.monitor.usage
     remote.writer.enabled=true
-
+    
     # com.soa.platform.jetty.cfg
     jetty.information.servlet.enable=false
-
+    
     # com.soa.http.client.core.cfg ND only
     http.client.params.handleRedirects=true
-
+    
     # com.soa.binding.http.cfg ND only
     http.in.binding.virtualhost.endpoint.selection.enabled=false
-
+    
     # com.soa.binding.soap.cfg ND only
     soap.in.binding.virtualhost.endpoint.selection.enabled=false
     soap.in.binding.component.supportGetWsdl=true
     soap.out.binding.component.checkForNon500Faults=false
-
+    
     # com.soa.compass.settings.cfg
     compass.engine.optimizer.schedule=true
     compass.engine.optimizer.schedule.period=600
-
+    
     # com.soa.rollup.configuration.cfg
     monitoring.rollup.configuration.countersForEachRun= 0
-
+    
     # com.soa.rollup.delete.old.cfg
     monitoring.delete.rollup.MO_ROLLUP15.enable=false
     monitoring.delete.rollup.MO_ROLLUPDATA.enable=false
@@ -1380,38 +1455,55 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     monitoring.delete.rollup.MO_ROLL_ORG_D.enable=false
     monitoring.delete.rollup.MO_ROLL_ORG_H.enable=false
     monitoring.delete.usage.enable=false
-
+    
+    # com.soa.script.framework
+    script.engine.manager.enabled=
+    script.engine.manager.engines=
+    
+    # com.akana.elasticsearch
+    elastic.config.index.number.of.replicas=
+    elastic.config.index.number.of.shards=
+    
+    # com.akana.es.client.security
+    elastic.client.alias=
+    elastic.client.aliasPassword=
+    elastic.client.clientUser=
+    elastic.client.clientUserPassword=
+    elastic.client.enableSSL=false
+    elastic.client.keystorePassword=
+    elastic.client.keystorePath=
+    
     # com.soa.http.client.core.cfg 'SSLv3,TLSv1,TLSv1.1,TLSv1.2'
     https.socket.factory.enabledProtocols=
-
+    
     # com.soa.search.cfg
     com.soa.search.index.merge.maxSegmentSize=10000000
-
+    
     # com.soa.atmosphere.console.cfg CM only
     security.config.basicAuth=false
     security.config.realm=atmosphere.soa.com
     atmosphere.console.config.userDefinedScriptVersion=
     atmosphere.default.policies=
-
+    
     # com.soa.log
     log4j.appender=
-    log4j.location=
-
+        log4j.location=
+    
     # ccom.soa.scheduler.quartz
     org.quartz.scheduler.enabled=true
-
+    
     # com.soa.framework
     email.sender=
-
+    
     # com.soa.policy.handler.audit
     audit.maxContentSize=10000000
-
+    
     # com.soa.admin.console
     admin.console.domain.enabled=
-
+    
     # grid cache true or false
     grid.cache=false
-
+    
     #TenantProperties
     tenant.create=false
     #portal.definition={
@@ -1429,20 +1521,57 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #  		"fromEmailAddress": "no-reply@open", \
     #  		"consoleAddress": "https://localhost:19910/devportal", \
     #  		"adminEmail": "admin@open", \
-    #  		"adminPassword": "password"\
-    #       "deploymentzones": [{\
-    #           "name": "apigateway"\
-    #       }]\
-    #		"themes": [{\
-    #			"name": "simpledev",\
-    #			"virtualhost": "developer-localhost",\
-    #			"consoleaddress": "https://developer-localhost:19910/devportal",\
-    #			"themeimpl": "default"
-    #		}]\
+    #  		"adminPassword": "password", \
+    #  		"loadDefaultContent": false\
     #  	}] \
     #}
     portal.definition=
-
+    
+    #elastic.search.configuration = { \
+    #	"shards" : 2, \
+    #	"replicas" : 1, \
+    #
+    # Embedded config
+    #
+    #	"embeddedConfig" : { \
+    #		"clusterName" : "MyESCluster", \
+    #		"minimumMasterNodes" : 2, \
+    #		"multicastEnabled" : False, \
+    #		"nodeName" : "MyESCluster_node_1", \
+    #		"indexLocation" : "/var/akana/index", \
+    #		"networkBindHost" : "0.0.0.0", \ 
+    #		"networkPublishHost" : "localhost", \
+    #		"transportPort" : 9300, \
+    #		"httpPort" : 9200, \
+    #		"httpEligible" : False, \
+    #		"masterEligible" : True, \
+    #		"isDataNode" : True \
+    #	} \
+    #}
+    #
+    # Transport-Client config
+    #
+    #	"transportClientConfig" : { \
+    #		"clusterName" : "MyESCluster", \
+    #		"esServerUrl" : "http://escluster1"
+    #	}
+    #
+    # Client Only config
+    #
+    #	"clientOnlyConfig" : { \
+    #		"clusterName" : "MyESCluster", \
+    #		"masterHostUrl" : "http://masterESnode", \
+    #		"multicastEnabled" : False, \
+    #		"nodeName" : "MyESCluster_node_1", \
+    #		"networkBindHost" : "0.0.0.0", \ 
+    #		"networkPublishHost" : "localhost", \
+    #		"transportPort" : 9300, \
+    #	}
+    elastic.search.configuration=
+    
+    # com.soa.console
+    pmcontext.path=
+    
     #HardeningProperties
     # Hardening properties are set to recommended values.  Change if desired.  For details review: http://docs.akana.com/sp/platform-hardening_2.0.html
     container.harden=true
@@ -1450,32 +1579,32 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # com.soa.http.client.core
     ## http.client.params.cookiePolicy
     harden.ignoreCookies=ignoreCookies
-
+    
     # com.soa.transport.jetty
     ## session.manager.factory.secureCookies
     harden.secureCookies=true
     ## http.incoming.transport.config.enabledProtocols
     harden.enabledProtocols=SSLv2HELLO,TLSv1,TLSv1.1, TLSv1.2
     ## http.incoming.transport.config.cipherSuites
-    harden.cipherSuites=SSL_RSA_WITH_RC4_128_MD5,SSL_RSA_WITH_RC4_128_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_DSS_WITH_AES_128_CBC_SHA,SSL_RSA_WITH_3DES_EDE_CBC_SHA,SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA
-
+    harden.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA
+    
     # Community Manager containers
     # com.soa.atmosphere.forwardproxy
     ## forward.proxy.allowedHosts
     harden.cm.allowed.hosts==<Network Director Host(s) and/or Load Balancer host>
-
+    
     # com.soa.http.client.core
     ## block.headers.interceptor.blocked
     harden.cm.interceptor.blocked=content-type,content-length,content-range,content-md5,host,expect,keep-alive,connection,transfer-encoding
     ## header.formatter.interceptor.templates
     harden.cm.template=
-
+    
     # com.soa.api.security
     ## com.soa.api.security.cache.expirationPeriod
     harden.cache.expirationPeriod=3600000
     ## com.soa.api.security.cache.refreshTime
     harden.cache.refreshTime=300000
-
+    
     # Network Directory containers
     # com.soa.http.client.core
     ## block.headers.interceptor.blocked
@@ -1483,18 +1612,18 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ## header.formatter.interceptor.templates
     harden.nd.template=replace=X-Forwarded-Host:{host}
     harden.nd.replace.host={host}
-
+    
     # com.soa.api.security
     ## com.soa.api.security.cache.expirationPeriod
     harden.nd.security.expiration.period=3600000
     ## com.soa.api.security.cache.refreshTime
     harden.nd.security.refresh.time=300000
-
+    
     # Policy and Community Manager containers
     # com.soa.console.csrf
     ## org.owasp.csrfguard.Enabled
     harden.cm.csrf.enabled=true
-
+    
     # com.soa.console.xss
     ## exceptionURLs
     harden.cm.exception.urls=#COMMA DELIMITED LIST]
@@ -1502,12 +1631,12 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     harden.cm.keywords=#COMMA DELIMITED LIST]
     ## validate
     harden.cm.validate=#true|false]
-
+    
     # com.soa.atmosphere.console
     ## atmosphere.console.config.xFrameOptions (CM)
     ## xFrameOptions (PM)
     harden.cm.x.frame=#DESIRED HEADER]
-
+    
     #PerformanceProperties
     # Performance properties need to be set appropriately for your desired results.  Values currently set are for examples only.
     #    For details review: http://docs.akana.com/sp/performance-tuning.html
@@ -1518,44 +1647,44 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     performance.failureDataCaptureEnabled=true
     track.txBlockThresholdTime=false
     txBlockThresholdTime=0
-
+    
     # com.soa.client.subsystem
     pm.client.cache.cacheExpirationSecs=14400
     pm.client.cache.refresh.trigger.repeatInterval=300000
-
+    
     # com.soa.saml
     com.soa.saml.assertion.expiration=240
-
+    
     # Network Director Containers
     # com.soa.http.client.core
     ## http.connection.manager.maxTotal
     performance.connection.maxTotal=2000
     ## http.connection.manager.defaultMaxPerRoute
     performance.connection.defaultMaxPerRoute=1500
-
+    
     # com.soa.monitor.usage
     ## usage.queue.capacity
     performance.queueCapacity=10000
-
+    
     #com.soa.monitor.usage
     ## usage.batch.writer.usageBatchSize
     performance.usageBatchSize=50
-
+    
     # com.soa.monitor.usage
     ## usage.batch.writer.writeInterval
     performance.writeInterval=1000
-
+    
     # com.soa.vs.engine
     ## vs.capability.metadata.preloadInvokedServices
     performance.preloadInvokedServices=true
-
+    
     # com.soa.contract.enforcement
     ## contract.handler.framework.idleExpiration
     performance.framework.idleExpiration=259200
     ## contract.handler.framework.maxRefreshInterval
-    performance.framework.makeRereshInterval=900
+    performance.framework.maxRefreshInterval=900
     contract.refresh.trigger.repeatInterval=300000
-
+    
     # com.soa.jbi
     ## lbha.endpoint.refresh.task.allowRemoval
     performance.endpoint.allowRemoval=false
@@ -1563,34 +1692,34 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     performance.endpoint.expirationInterval=3600000
     ## lbha.endpoint.refresh.task.maxrefreshInterval
     performance.endpoint.maxrefreshInterval=900000
-
+    
     # com.soa.auz.client (ND containers only)
     cached.auz.decision.service.cacheTimeout=300
     cached.auz.decision.service.expirationTimeInSeconds=14400
-
+    
     # com.soa.container.configuration.service
     container.refresh.trigger.repeatInterval=120000
-
+    
     # com.soa.mp.core
     rules.expiration.trigger.repeatInterval=60000
-
+    
     # Policy Manager Containers
     # com.soa.service.category
     ## service.category.manager.transactional.loadGifMetrics
     performance.loadGifMetrics=false
-
+    
     # com.soa.console
     ## workbench.search.PerformAutoSearch
     performance.performAutoSearch=true
-
+    
     # com.soa.metrics
     ## metrics.rollup.reporter.requireMetricsPolicy
     performance.requireMetricsPolicy=true
-
+    
     # com.soa.auz.operation (PM containers only)
     cached.auz.engine.operation.cacheTimeout=300
     cached.auz.engine.operation.expirationTimeInSeconds=14400
-
+    
     # Custom Properties to be added into any configuration category.
     custom.properties=
     #custom.properties={ \
@@ -1602,7 +1731,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #	    }]\
     #  	}] \
     #}
-
+    
     # com.soa.external.keystore
     com.soa.keystore.external.encrypted=
     com.soa.keystore.external.keyStoreType=
