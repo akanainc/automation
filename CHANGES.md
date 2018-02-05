@@ -1,5 +1,26 @@
 # Changes
 
+v8.4.14
+
+* Fixed the ability to add a stand-alone scheduler container.
+
+* Exposed the ability to control the number of alerts
+
+    ```properties
+    number.of.alerts.to.dispatch.in.one.run=100
+    ``` 
+    
+* Moved `com.soa.console.xss` from being a CM container only setting, to being set for all containers.
+
+* Adding properties to control the deletion scheme for rollups
+
+    ```properties
+    monitoring.delete.usage.unit=week
+    monitoring.delete.usage.windowSize=1
+    ```
+
+---
+
 v8.4.13
 
 * Added `db.url` to the environment.properties file.  This will be used to override the default setting and dynamically 
