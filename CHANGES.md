@@ -1,5 +1,47 @@
 # Changes
 
+v8.4.16
+
+* Fixed the way new deployment zones are created.
+
+* Fix for failover DB url to work
+
+---
+
+v8.4.15
+
+* Fixed the way that listener certificates are uploaded to the container.
+
+* Update on how the ES secured is configured.
+
+* Exposed the ability to extend the ncsa data
+
+    ```properties
+    ncsa.access.log.extended=true
+    ``` 
+    
+* Exposed monitoring to include messages or not
+
+    ```properties
+    monitoring.delete.usage.includeMessages=true
+    ``` 
+    
+* Added support to control the mapReduce time in MongoDB
+
+    ```properties
+    persistence.mongodb.mapReduceMaxExecTime=
+    ``` 
+    
+* Added support rollup timezones
+
+    ```properties
+    metric.evaluator.timeZoneMappings=UTC:GMT,America/Los_Angeles:PST
+    statistic.dao.timeZoneMappings=UTC:GMT,America/Los_Angeles:PST
+    monitoring.rollup.configuration.dailyRollupTimeZones=GMT
+    ```
+
+---
+
 v8.4.14
 
 * Fixed the ability to add a stand-alone scheduler container.

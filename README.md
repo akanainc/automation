@@ -23,27 +23,32 @@ All valid options are:
 * `-u` Update with new jar features
 * `-p` Environment Properties file to use
 * `-s` deploy scripts
-* `-c` create containers
 * `-m` monitor the container
-* `--hostname=<hostname>`
-* `--timeout=<timeout>`
-* `--name=<container name>`
-* `--key=<container key>`
+* `-d` delete an existing container
 * `--filepath` Path to the zip file that needs to be extracted
 * `--installpath` Path to the installation, this should be used when an upgrade requires a completely new directory
-* `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
+* `-c` create containers
+* `--hostname=<hostname>`
+* `--timeout=<timeout>`
+* `--key=<container key>`
+* `--name=<container name>`
 * `--overwrite` is the option that will tell the installer to overwrite a directory that already exists.
+* `--javaHome` Location of the JRE
+* `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
 * `--repository` is an option to be used when the lib directory is outside of the product home.  This is useful if using a shared location, mounted drive.
 * `--javaopts` allows the script to override the default java options used at container startup.
 * `--pmrunning` Should the script validate PM is running, prior to making calls to PM
 * `--containerlog` Sets container build log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--databaselog` Sets database build log level, defaults to 'CRITICAL'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--installerlog` Sets installer log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+* `--datacentername` Data Center Name that this container exists in.  Needed for MongoDB sharding.
 * `--jce` Tells the installer the location of the JCE to be extracted into the `/jre/lib/security` directory.  This needs to be downloaded from http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html and supplied at the time of installation.
 * `--postinstallscript` DBscript if any extra dbscripts need to be ran, after container installation
 * `--custompolicies` Custom Policies to deploy to the deploy directory.
-* `--javaHome` Location of the JRE
 * `--environmentproperties` Location of environment properties file. This overwrites the default environment.properties file. You are still required to have the word `environment` in the property file.  This prevents it from being picked up as a container property file.
+* `--version` Version of the containers.  Required when using the `--product` flag.
+* `--administrator` Administrator user for the console
+* `--password` Password for the administrator user
 
 To delete the container:
 * typical usage - `./installer.py -d --key <container key> --host <address to the PM server> --administrator <administrator user> --password <user password> --installpath <installation path>`
@@ -68,21 +73,23 @@ All valid options are:
 * `-d` Delete container(s) from the PM console
 * `-m` monitor the container
 * `--hostname=<hostname>`
-* `--timeout=<timeout>`
-* `--name=<container name>`
-* `--key=<container key>`
 * `--administrator` Administrator user for the console
 * `--password` Password for the administrator user
-* `--product` Which products containers should be deleted, defaults to 'PM'.  Valid values are: 'PM', 'CM', 'ND'
-* `--version` Version of the containers.  Required when using the --product flag
-* `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
-* `--installpath` Path to the installation, this should be used when an upgrade requires a completely new directory
-* `--pmrunning` Should the script validate PM is running, prior to making calls to PM
+* `--timeout=<timeout>`
 * `--containerlog` Sets container build log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
 * `--databaselog` Sets database build log level, defaults to 'CRITICAL'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
-* `--installerlog` Sets installer log level, defaults to 'ERROR'.  Valid values are: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+* `--product` Which products containers should be deleted, defaults to 'PM'.  Valid values are: 'PM', 'CM', 'ND'
+* `--version` Version of the containers.  Required when using the --product flag
+* `--key=<container key>`
+* `--name=<container name>`
+* `--deployFiles` is an archive file that contains any extra files to be added to a containers deploy directory
+* `--repository` The location of the lib directory, if it's a different location then install dir.
+* `--pmrunning` Should the script validate PM is running, prior to making calls to PM
+* `--datacentername` Data Center Name that this container exists in.  Needed for MongoDB sharding.
+* `--installpath` Path to the installation, this should be used when an upgrade requires a completely new directory
 * `--postinstallscript` DBscript if any extra dbscripts need to be ran, after container installation
 * `--custompolicies` Custom Policies to deploy to the deploy directory.
+* `--environmentproperties` Include the name of the environment property file, if the default needs to be overridden.
 
 ### Logging
 The Database and Container creation takes advantage of using a python logger [Python Logging](https://docs.python.org/2/library/logging.html).  
@@ -136,6 +143,50 @@ local log directory.
 ## Property Files
 
 ### Password Encryption
+Pure Java based Password Encryption tool used to encrypt existing passwords.  This will now just run as a Java application.  Run
+the following command from the installation directory.
+
+```properties
+    java -jar com.akana.ps.automation.security.jar myPasswordToBeEncrypted
+```
+
+This will output the result that needs to be added into the properties file.
+
+```properties
+    Encrypted Password:  H5m3IqiZDUTaiIs3AoB795Qn0a2dOXCL
+```
+    
+The following properties should be encrypted:
+
+container.properties
+    
+```properties
+    container.admin.password=
+    container.secure.alias.password=
+    container.secure.storepass=
+    container.secure.trusted.storepass=
+    pm.master.password=
+    pm.admin.password=
+    cm.admin.password=
+    if tenant.create=true then adminPassword
+    elastic.client.aliasPassword=
+    elastic.client.clientUserPassword=
+    elastic.client.keystorePassword=
+        if com.soa.keystore.external.encrypted=false then com.soa.keystore.external.password= else it is already encrypted
+```
+        
+environment.properties
+    
+```properties
+    database.password=
+    database.admin.password=
+    proxy.password=
+    mongodb.password=
+    default.keystore.password=
+```
+
+** Note the following is Deprecated, but will still properly encrypt a password.
+
 Passwords can be encrypted prior to storing them in any of the property files.  When passwords are encrypted the property `container.passwords.encrypted` needs to be set to true.
 
 The following steps are required to run the password encrypt utility.
@@ -165,8 +216,8 @@ to `true`.
 
 if installing multiple feature packs, the features properties would look like:
 
-```
-	features=akana-platform-8.1.39.zip,akana-pm-8.0.115.zip,akana-apiportal-8.0.0.291.zip,com.akana.devservices_8.0.0.zip,com.akana.integration.services_8.0.189684.zip,com.akana.activity.freemarker_8.0.0.zip,com.akana.activity.headers_8.0.0.zip,com.akana.activity.normalize_8.0.0.zip,com.soa.security.provider.siteminder_8.0.189684.zip,PolicyManagerForDataPower_8.0.0.zip
+```properties
+    features=akana-platform-8.1.39.zip,akana-pm-8.0.115.zip,akana-apiportal-8.0.0.291.zip,com.akana.devservices_8.0.0.zip,com.akana.integration.services_8.0.189684.zip,com.akana.activity.freemarker_8.0.0.zip,com.akana.activity.headers_8.0.0.zip,com.akana.activity.normalize_8.0.0.zip,com.soa.security.provider.siteminder_8.0.189684.zip,PolicyManagerForDataPower_8.0.0.zip
 ```
 
 ### Environment Property File
@@ -230,6 +281,15 @@ Specify the configuration values for this database
 | minPoolSize  |          | Minimum number of open, idle connections	     |
 | maxWait      |          | Maximum time to wait for an available connection |
 
+In the case that a failover URL needs to be configured.  This will be used to override the default setting and dynamically 
+use automation to configure the failover settings.  Do NOT include this property to set the default settings.  Include 
+this property to set a failover.  The following displays how to configure failover for oracle, replacing `<hostA>`, 
+`<hostB>`, `<port>` and `<service_name>`:
+
+```properties
+    db.url=jdbc:oracle:thin:@(description=(ADDRESS_LIST=(address=(host=<hostA>)(protocol=tcp)(port=<port>))(address=(host=<hostB>)(protocol=tcp)(port=<port>))(FAILOVER=on)(LOAD_BALANCE=off))(connect_data=(SERVER=DEDICATED)(service_name=<service_name>)))
+```
+    
 #### Configure MongoDB
 MongoDB configuration is required when the feature `Akana MongoDB Support' (mongo.db) has been installed into the Policy
 Manager container.  Mongo configuration is accomplished by using the environment.properties file.  Populate the
@@ -264,30 +324,52 @@ If oauth grants are needed to be migrated to mongo, include:
     use.oauth.grants=true
 ```
 
+To secure a mongo connection.  The default will always to be not be secured.  Include the following 
+property when the connection needs to be secured.
+
+```properties
+    mongo.ssl=true
+    # Alias is used to pull the required cert from the container.secure.trusted.keystore and added to the default keystore
+    #   using this same alias
+    mongo.alias=mongodb
+    # The following is not required and will default to the $JAVA_HOME/lib/security/cacerts and password defaults to the
+    #   java default password
+    default.keystore.location=
+    default.keystore.password=
+```
+
 #### Property File
 
 ```properties
     #InstallSection
     install.path=/opt/akana_sw/
-
+    
+    #Runtime user/group (Unix only)
+    runtime.user=akana
+    runtime.group=akana
+    
     #DatabaseSection
-    database.create=false
+    database.create=true
     # if database create and the database already exist, what should we do
-    database.recreate=false
+    database.recreate=true
     # Should the scripts run any needed dbscripts
     database.run.dbscripts=true
     # Check the required schemas
     database.pm=true
-    database.cm=true
-    database.oauth=true
+    database.cm=false
+    database.oauth=false
     database.laas=false
     database.upgrade52=false
     database.pmdp=false
     database.wcf=false
     database.ims=false
     database.websso=false
-    #   Specify the configuration values for this database
-    #       key       |restrict | description         
+    database.lm=false
+    database.coordinator=false
+    # database.custom is used for any custom schema changes.  This is a comma separated field of all custom schema's  `database.custom=ps.common.schema`
+    database.custom=
+    #  	Specify the configuration values for this database
+    #    	key       |restrict | description         
     #   -------------+---------+--------------------------------------------------
     #   databaseType |         | 'mssql', 'mysql', 'oracle', 'oracle-sn', 'db2'
     #   user         |         | Database connect userid
@@ -317,20 +399,33 @@ If oauth grants are needed to be migrated to mongo, include:
     database.max.pool.size=30
     database.min.pool.size=3
     database.max.wait=30000
-    database.jar=<required database jar file>
+    database.jar=
     # mssql/oracle specific, only populate for mssql or oracle
     database.instance.name=
     # db2 specific, only populate for db2
     database.tablespace=
     database.bufferName=
     database.isNewBuffer=
-
+    
+    # database URI, used to override the default value.  Needed in failover configurations
+    # Default settings:
+    #   mysql:jdbc\:mysql\://{server}\:{port}/{database}?connectTimeout\=60000&socketTimeout\=60000&zeroDateTimeBehavior\=convertToNull&useTimezone\=true&useLegacyDatetimeCode\=false&serverTimezone\=GMT
+    #   oracle:jdbc\:oracle\:thin\:@{server}\:{port}\:{instanceName}
+    #   mssql:jdbc\:jtds\:sqlserver\://{server}\:{port}/{database};user\={user};password\={password}
+    #   db2:
+    # Failover settings
+    #   mysql:
+    #   oracle:jdbc:oracle:thin:@(description=(ADDRESS_LIST=(address=(host=<host>)(protocol=tcp)(port=<port>))(address=(host=<host>)(protocol=tcp)(port=<port>))(FAILOVER=on)(LOAD_BALANCE=off))(connect_data=(SERVER=DEDICATED)(service_name=<service name>)))
+    #   mssql:
+    #   db2:
+    db.url=
+    
     #ProxySection
     proxy.url=
     proxy=
     proxy.user=
     proxy.password=
-
+    
     #Mongo DB Configuration
     mongodb.thread=20
     mongodb.enabled=false
@@ -338,15 +433,26 @@ If oauth grants are needed to be migrated to mongo, include:
     mongodb.port=
     mongodb.password=
     mongodb.username=
+    mongo.databasename=Akana
+    mongo.connect.timeout=15000
+    mongo.socket.timeout=1500000
+    mongo.min.poolSize=0
+    mongo.max.poolSize=100
+    mongo.wait.queue=5
+    mongo.wait.queue.timeout=10000
     mongo.authSource=
     mongo.authMechanism=
-    mongo.databasename=
-    mongo.connect.timeout=
-    mongo.socket.timeout=
-    mongo.min.poolSize=
-    mongo.max.poolSize=
-    mongo.wait.queue=
-    mongo.wait.queue.timeout=
+    persistence.mongodb.mapReduceMaxExecTime=
+    
+    mongo.ssl=false
+    # Alias is used to pull the required cert from the container.secure.trusted.keystore and added to the default keystore
+    #   using this same alias
+    mongo.alias=mongodb
+    # The following is not required and will default to the $JAVA_HOME/lib/security/cacerts and password defaults to the
+    #   java default password
+    default.keystore.location=
+    default.keystore.password=
+
 ```
 
 ### Container Property Files
@@ -529,12 +635,12 @@ container.deploy.files=
 
 Custom Policies can be set in the container property file.  This needs to be an absolute path to an archive file that contains all custom policies/features.  This is needed when a single installation is hosting multiple containers.  Add the following property to the required container property file:
 ```properties
-container.custom.policies=
+    container.custom.policies=
 ```
 
 Support for Windows deployments to update any JVM options.  Add the following:
 ```properties
---javaopts "-Xmx4096M"
+    --javaopts "-Xmx4096M"
 ```
 
 When ND is writing any analytical data through PM, the remote writer needs to be enabled.  The following property needs to be added into the ND container property file.
@@ -547,6 +653,12 @@ To view all services that are deployed into any container, the jetty information
 ```properties
     # com.soa.platform.jetty.cfg
     jetty.information.servlet.enable=true
+```
+ 
+* Added the ability to control the retention of access logs.
+
+```properties
+    ncsa.access.log.retainDays=7
 ```
 
 Add the following property if it is required that ND follows all redirects
@@ -587,6 +699,39 @@ com.soa.binding.soap
 ```properties
     # com.soa.rollup.configuration.cfg
     monitoring.rollup.configuration.countersForEachRun= 0
+```
+
+Exposed the ability to control the number of alerts
+
+```properties
+    number.of.alerts.to.dispatch.in.one.run=100
+``` 
+    
+Adding properties to control the deletion scheme for rollups
+
+```properties
+    monitoring.delete.usage.unit=week
+    monitoring.delete.usage.windowSize=1
+```
+
+Exposed monitoring to include messages or not
+
+```properties
+    monitoring.delete.usage.includeMessages=true
+``` 
+    
+Added support to control the mapReduce time in MongoDB
+
+```properties
+    persistence.mongodb.mapReduceMaxExecTime=
+``` 
+    
+Added support rollup timezones
+
+```properties
+    metric.evaluator.timeZoneMappings=UTC:GMT,America/Los_Angeles:PST
+    statistic.dao.timeZoneMappings=UTC:GMT,America/Los_Angeles:PST
+    monitoring.rollup.configuration.dailyRollupTimeZones=GMT
 ```
 
 It is recommended that all rollups are disabled.  The rollups tables should be partitioned using database scripts.  
@@ -636,6 +781,12 @@ Configure the jetty (ncsa) logs by adding the following properties:
     ncsa.access.log.enable=true
     ncsa.access.log.filename=${product.home.dir}/instances/${container.name}/log/jetty_access_yyyy_mm_dd.log
 ```
+
+Exposed the ability to extend the ncsa data
+
+```properties
+    ncsa.access.log.extended=true
+``` 
 
 When configuring email groups to send alerts too.
 ```properties
@@ -990,6 +1141,12 @@ To secure the metadata API add the following property to the container propertie
     secure.metadata.service=true
 ```
 
+Setting the value to send the Jetty server version or not.  This is a Hardening value: http://docs.akana.com/sp/platform-hardening_8.4.html#configuring-server-header
+
+```properties
+    jetty.server.sendServerVersion=false
+```
+
 #### Performance Tasks
 These tasks are the implementation of the [Performance](http://docs.akana.com/sp/performance-tuning.html) recommendations.
 
@@ -1246,6 +1403,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # Key that is used during verification when calling remote APIs
     certificate.verification.alias=
     certificate.verification.alias.password=
+    # com.soa.container.metadata.service
     secure.metadata.service=false
     
     # FeaturesSection
@@ -1268,9 +1426,10 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     community.manager.oauth.provider=false
     community.manager.scheduled.jobs=false
     oauth.provider=false
-    ## 8.0 features
+    ## 8.X features
     elastic.search=false
     grant.provisioning.ui=false
+    # True sets:  com.soa.oauth.provider.server.config.datasource=NOSQL (i.e. Mongo)
     use.oauth.grants=true
     
     ## Miscellaneous
@@ -1427,6 +1586,10 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     
     # com.soa.platform.jetty.cfg
     jetty.information.servlet.enable=false
+    ncsa.access.log.enable=true
+    ncsa.access.log.filename=${product.home.dir}/instances/${container.name}/log/jetty_access_yyyy_mm_dd.log
+    ncsa.access.log.retainDays=30
+    ncsa.access.log.extended=false
     
     # com.soa.http.client.core.cfg ND only
     http.client.params.handleRedirects=true
@@ -1444,7 +1607,10 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     compass.engine.optimizer.schedule.period=600
     
     # com.soa.rollup.configuration.cfg
-    monitoring.rollup.configuration.countersForEachRun= 0
+    monitoring.rollup.configuration.countersForEachRun=0
+    metric.evaluator.timeZoneMappings=UTC:GMT,America/Los_Angeles:PST
+    statistic.dao.timeZoneMappings=UTC:GMT,America/Los_Angeles:PST
+    monitoring.rollup.configuration.dailyRollupTimeZones=GMT
     
     # com.soa.rollup.delete.old.cfg
     monitoring.delete.rollup.MO_ROLLUP15.enable=false
@@ -1455,6 +1621,9 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     monitoring.delete.rollup.MO_ROLL_ORG_D.enable=false
     monitoring.delete.rollup.MO_ROLL_ORG_H.enable=false
     monitoring.delete.usage.enable=false
+    monitoring.delete.usage.unit=week
+    monitoring.delete.usage.windowSize=1
+    monitoring.delete.usage.includeMessages=true
     
     # com.soa.script.framework
     script.engine.manager.enabled=
@@ -1487,13 +1656,14 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     
     # com.soa.log
     log4j.appender=
-        log4j.location=
+    log4j.location=
     
     # ccom.soa.scheduler.quartz
     org.quartz.scheduler.enabled=true
     
     # com.soa.framework
     email.sender=
+    number.of.alerts.to.dispatch.in.one.run=200
     
     # com.soa.policy.handler.audit
     audit.maxContentSize=10000000
@@ -1507,7 +1677,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     #TenantProperties
     tenant.create=false
     #portal.definition={
-    #	"contextRoot": "/devporal", \
+    #	"contextRoot": "/devportal", \
     #  	"userRolesDenied": "", \
     #  	"tenants": [{\
     #  		"contactEmailAddress": "no-reply@open", \
@@ -1580,13 +1750,14 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ## http.client.params.cookiePolicy
     harden.ignoreCookies=ignoreCookies
     
-    # com.soa.transport.jetty
+    # com.soa.platform.jetty
     ## session.manager.factory.secureCookies
     harden.secureCookies=true
     ## http.incoming.transport.config.enabledProtocols
     harden.enabledProtocols=SSLv2HELLO,TLSv1,TLSv1.1, TLSv1.2
     ## http.incoming.transport.config.cipherSuites
-    harden.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA
+    harden.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA\
+    jetty.server.sendServerVersion=false
     
     # Community Manager containers
     # com.soa.atmosphere.forwardproxy
