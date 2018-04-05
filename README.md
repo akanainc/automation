@@ -49,6 +49,7 @@ All valid options are:
 * `--version` Version of the containers.  Required when using the `--product` flag.
 * `--administrator` Administrator user for the console
 * `--password` Password for the administrator user
+* `--ssldebug` Sets SSL debug on when the Jython scripts are called.
 
 To delete the container:
 * typical usage - `./installer.py -d --key <container key> --host <address to the PM server> --administrator <administrator user> --password <user password> --installpath <installation path>`
@@ -90,6 +91,7 @@ All valid options are:
 * `--postinstallscript` DBscript if any extra dbscripts need to be ran, after container installation
 * `--custompolicies` Custom Policies to deploy to the deploy directory.
 * `--environmentproperties` Include the name of the environment property file, if the default needs to be overridden.
+* `--ssldebug` Sets SSL debug on when the Jython scripts are called.
 
 ### Logging
 The Database and Container creation takes advantage of using a python logger [Python Logging](https://docs.python.org/2/library/logging.html).  
@@ -312,6 +314,20 @@ following fields with the correct values:
     mongo.max.poolSize=
     mongo.wait.queue=
     mongo.wait.queue.timeout=
+    mongo.authSource=
+    mongo.authMechanism=
+    persistence.mongodb.mapReduceMaxExecTime=
+    # readPreference valid values: primary, primaryPreferred, secondary, secondaryPreferred, nearest
+    mongo.readPreference=primary
+
+    mongo.ssl=false
+    # Alias is used to pull the required cert from the container.secure.trusted.keystore and added to the default keystore
+    #   using this same alias
+    mongo.alias=mongodb
+    # The following is not required and will default to the $JAVA_HOME/lib/security/cacerts and password defaults to the
+    #   java default password
+    default.keystore.location=
+    default.keystore.password=
 ```
 
 Use `mongodb.username` and `mongodb.password` after setting the user access role on each database (authorization).
@@ -443,6 +459,11 @@ property when the connection needs to be secured.
     mongo.authSource=
     mongo.authMechanism=
     persistence.mongodb.mapReduceMaxExecTime=
+    mongo.authSource=
+    mongo.authMechanism=
+    persistence.mongodb.mapReduceMaxExecTime=
+    # readPreference valid values: primary, primaryPreferred, secondary, secondaryPreferred, nearest
+    mongo.readPreference=primary
     
     mongo.ssl=false
     # Alias is used to pull the required cert from the container.secure.trusted.keystore and added to the default keystore
@@ -1406,6 +1427,12 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # com.soa.container.metadata.service
     secure.metadata.service=false
     
+    # agent path for dynatrace or appdynamics
+    #   for appdynamics
+    #javaagent=
+    #   for dynatrace
+    #agentpath=
+    
     # FeaturesSection
     ## Policy Manager
     managed.services=false
@@ -1460,6 +1487,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     kerberos.impersonation=false
     community.manager.laas=false
     community.manager.laas.schedule.jobs=false
+    lifecycle.manager.api.platform.extension=false
     ping.federate.integration=false
     mongo.db=false
     ## 8.2 features
@@ -1528,7 +1556,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     pm.master.password=
     # if the PM admin console is running on a different port, than wsmex please provide the address to the PM admin console.  'http://<hostname>:<port>
     pm.admin.console=
-    # if the PM admin access is different from this container, set the proper values here
+    # if the PM admin access is different from this container (admin console user), set the proper values here
     pm.admin.user=
     pm.admin.password=
     # If Basic Auth has been disabled for the configjob, set configjob.secured to false
