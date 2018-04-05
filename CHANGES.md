@@ -1,10 +1,59 @@
 # Changes
 
+v8.4.17
+
+* Added the ability to turn on SSL debug for the JVM when running the Jython Scripts.  Use `--ssldebug` on the command line.
+
+* For Windows installs, changed `AUTO_START` to `auto`.  The registration script was expecting `auto`.
+
+* Added the ability to configure MongoDB readPreference.  Valid values are:
+    * primary
+    * primaryPreferred
+    * secondary
+    * secondaryPreferred
+    * nearest
+    
+    Include the following property:
+
+    ```properties
+    mongo.readPreference=primary
+    ```
+* Add the mongo property for auto install
+
+    ```properties
+    persistence.mongodb.autoinstall=false
+    ```
+
 v8.4.16
 
 * Fixed the way new deployment zones are created.
 
 * Fix for failover DB url to work
+
+* Fix where a port was being checked for when creating a JMS listener.
+
+* Added support for trace agents like `DynaTrace` or `AppDynamics`.  The container properties files needs to have the appropriate property added with the location of the trace jar agent.  For AppDynamics, it will automatically include `com.singularity.*` to the boot classpath.
+
+    ```properties
+    # agent path for dynatrace or appdynamics
+    #   for appdynamics
+    javaagent=
+    #   for dynatrace
+    agentpath=
+    ```
+    
+* Added support in install the plug-in `Akana Lifecycle Manager API Platform Extension`
+
+    ```properties
+    lifecycle.manager.api.platform.extension=true
+    ```
+
+* Added the ability to set the Promotor address when using LC
+
+    ```properties
+    # com.soa.promotion
+    remote.promoter.address=https:my_cm_container:9900
+    ```
 
 ---
 
