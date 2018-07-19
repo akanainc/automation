@@ -1319,6 +1319,125 @@ Install the proper features.  Example property files can be located in the examp
     * Normalize
     	- normalize.activity
 
+##### Custom Health Panels
+
+Custom health panels can be added and configured to container during container creation.  Panels are added by adding the following property to the container properties file:
+
+```properties
+custom.health.panels={ \
+	"healthPanels": [{ \
+		"name": "Managed Service Count", \
+		"attributes": [{ \
+			"parent": "com.akana.endpoint.deployment.stats", \
+			"children": [ \
+				"managed.service.count", \
+        			"deployed.transport.count" \
+			] \
+		}] \
+	}, { \
+		"name": "My Health Variables", \
+		"attributes": [{ \
+			"parent": "soa.transport.jetty", \
+			"children": [ \
+				"pool.threads" \
+			] \
+		}] \
+	}] \
+}
+```
+
+Custom values are added in a parent/child configuration.  Custom parent/child values are as the following:
+
+* com.akana.endpoint.deployment.stats
+	* managed.service.count
+	* deployed.transport.count 
+* soa.jetty.connector-2
+ 	* connections.duration.max
+ 	* connections.duration.mean
+ 	* connections.duration.stddev
+ 	* connections.duration.total
+ 	* connections.requests.max
+ 	* connections.requests.mean
+ 	* connections.requests.stddev
+ 	* connections.open
+ 	* connections.open.max 
+* soa.jetty.connector-1
+ 	* connections.duration.max 
+ 	* connections.duration.mean
+ 	* connections.duration.stddev
+ 	* connections.duration.total
+ 	* connections.requests.max
+ 	* connections.requests.mean
+ 	* connections.requests.stddev
+ 	* connections.open
+ 	* connections.open.max
+* com.soa.framework
+ 	* active.dom.builders 
+ 	* idle.dom.builders 
+ 	* active.sax.parsers
+ 	* idle.sax.parsers 
+ 	* log.stack.depth 
+ 	* active.transformers 
+ 	* idle.transformers 
+* com.soa.usage
+ 	* rollup.queue.headroom.pct 
+ 	* rollup.queue.headroom 
+ 	* filtered.queue.size 
+ 	* rollup.queue.size 
+ 	* filtered.queue.headroom 
+ 	* filtered.queue.headroom.pct 
+ 	* transaction.queue.size 
+ 	* transaction.queue.headroom 
+ 	* transaction.queue.headroom.pct 
+* com.soa.vmstats
+ 	* total.memory 
+ 	* free.memory.pct 
+ 	* used.memory 
+ 	* free.memory 
+ 	* used.memory.pct 
+* com.soa.transport.http.client
+ 	* available.connections.in.pool 
+ 	* leased.connections.in.pool 
+ 	* max.connections.in.pool 
+ 	* pending.connections.in.pool 
+ 	* pool.headroom 
+ 	* pool.headroom.pct 
+* com.soa.transport.jetty.endpoints
+ 	* deployed.endpoints 
+* com.soa.container.reg.stats
+ 	* container.registered 
+* com.soa.container.config.stats
+ 	* last.update.time 
+ 	* last.config.duration 
+ 	* time.since.last.config 
+ 	* configuration.state 
+ 	* initial.config.duration 
+* com.soa.db.stats
+ 	* max.total.connections 
+ 	* available.pool.headroom.pct 
+ 	* available.pool.headroom 
+ 	* idle.connections 
+ 	* active.connections 
+* akana.health.lifecycle
+ 	* lifecycle.state 
+* com.soa.transport.jms
+ 	* jms.request.pool.headroom.pct 
+ 	* jms.request.processors 
+ 	* jms.request.pool.headroom 
+ 	* jms.listeners 
+* com.soa.jbi
+ 	* jbi.deploy.outstanding.ops 
+ 	* jbi.deploy.completed.ops 
+ 	* jbi.deploy.outstanding.removes 
+ 	* jbi.deploy.outstanding.adds 
+ 	* jbi.deploy.outstanding.mods 
+* soa.transport.jetty
+ 	* context.count 
+ 	* pool.threads 
+ 	* pool.headroom 
+ 	* pool.low.on.threads 
+ 	* pool.headroom.pct
+
 ##### Custom Features
 
 Custom features that are created for a specific client can be installed when using automation.  This is a comma separated field that contains the namespace of the feature that needs to be installed.
@@ -1618,6 +1737,9 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     ncsa.access.log.filename=${product.home.dir}/instances/${container.name}/log/jetty_access_yyyy_mm_dd.log
     ncsa.access.log.retainDays=30
     ncsa.access.log.extended=false
+
+    # com.soa.promotion
+    remote.promotor.address=
     
     # com.soa.http.client.core.cfg ND only
     http.client.params.handleRedirects=true
@@ -1689,7 +1811,7 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     # ccom.soa.scheduler.quartz
     org.quartz.scheduler.enabled=true
     
-    # com.soa.framework
+    # com.soa.console
     email.sender=
     number.of.alerts.to.dispatch.in.one.run=200
     
@@ -1937,6 +2059,28 @@ If it was required to add SYSLOG into the `com.soa.log` category, the property w
     com.soa.keystore.external.location=
     com.soa.keystore.external.password=
     com.soa.keystore.external.providerName=
+
+    # Custom Health Admin Panels to be added
+    custom.health.panels=
+    #custom.health.panels={ \
+    #	"healthPanels": [{ \
+    #		"name": "Managed Service Count", \
+    #		"attributes": [{ \
+    #			"parent": "com.akana.endpoint.deployment.stats", \
+    #			"children": [ \
+    #				"managed.service.count" \
+    #			] \
+    #		}] \
+    #	}, { \
+    #		"name": "My Health Variables", \
+    #		"attributes": [{ \
+    #			"parent": "soa.transport.jetty", \
+    #			"children": [ \
+    #				"pool.threads" \
+    #			] \
+    #		}] \
+    #	}] \
+    #}
 ```
 
 ## Copyright
