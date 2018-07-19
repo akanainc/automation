@@ -1,6 +1,79 @@
 # Changes
 
+v8.4.21
+
+* Fix to add double quotes around JAVA_OPTS in startup.sh
+
+* More fixes to support PM behind a secured load balancer.
+
+* Fix where the ND metadata was only checking secured ports.
+
+* Fix for when you need to delete a listener and the PM is behind a secured ND.
+
+---
+
+v8.4.19
+
+* Support to register the ND container via a secured load balancer.
+
+---
+
+v8.4.18
+
+* Updated the listener cert upload to support large JKS files.
+
+* Added support for `wsdl.storage.manager.maxEntries` in `com.soa.wsdl`.  This is only added to ND container property files.  If this is missing, it will default to -1.
+
+    ```properties
+    # com.soa.wsdl
+    wsdl.storage.manager.maxEntries=-1
+    ```
+
+* Added support for `QuickSearch.enabled` in `com.soa.console`.  
+
+    ```properties
+    # com.soa.console
+    QuickSearch.enabled=false
+    ```
+    
+* Added support for `validate.algorithms` in `com.soa.wssecurity`.  This is only added to ND container property files.
+
+    ```properties
+    # com.soa.wssecurity
+    validate.algorithms=false
+    ```
+
+---
+
 v8.4.17
+
+* Changed `email.sender` to update `com.soa.console` over `com.soa.framework`.
+
+* Updated the spelling of promotor to `remote.promotor.address`.
+
+* Added the ability to configure custom health panels during container creation.  For more details, review the automation documentation.  Custom health panels are added by including the following property in the container properties file:
+
+    ```properties
+    custom.health.panels={ \
+    	"healthPanels": [{ \
+    		"name": "Managed Service Count", \
+    		"attributes": [{ \
+    			"parent": "com.akana.endpoint.deployment.stats", \
+    			"children": [ \
+    				"managed.service.count" \
+    			] \
+    		}] \
+    	}, { \
+    		"name": "My Health Variables", \
+    		"attributes": [{ \
+    			"parent": "soa.transport.jetty", \
+    			"children": [ \
+    				"pool.threads" \
+    			] \
+    		}] \
+    	}] \
+    }
+    ```
 
 * Added the ability to turn on SSL debug for the JVM when running the Jython Scripts.  Use `--ssldebug` on the command line.
 
@@ -23,6 +96,8 @@ v8.4.17
     ```properties
     persistence.mongodb.autoinstall=false
     ```
+    
+---    
 
 v8.4.16
 
