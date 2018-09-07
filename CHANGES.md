@@ -1,5 +1,17 @@
 # Changes
 
+v8.4.24
+
+* Changed the cluster nodes to not replace all nodes.
+
+* Defaulted value for `com.soa.search.index.merge.maxSegmentSize`.
+
+---
+
+v8.4.23
+
+* Fixed uploading outbounding certificates
+
 v8.4.21
 
 * Fix to add double quotes around JAVA_OPTS in startup.sh
