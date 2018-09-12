@@ -959,12 +959,12 @@ elastic.search.configuration = { \
 	"replicas" : 1, \
 	"clientOnlyConfig" : { \
 		"clusterName" : "MyESCluster", \
-		"masterHostUrl" : "http://masterESnode", \
+		"masterHostUrl" : "masterESnode", \
 		"multicastEnabled" : False, \
 		"nodeName" : "MyESCluster_node_1", \
 		"networkBindHost" : "0.0.0.0", \
 		"networkPublishHost" : "localhost", \
-		"transportPort" : 9300, \
+		"transportPort" : 9300 \
 	} \
 }
 ```
