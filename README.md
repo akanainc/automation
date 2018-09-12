@@ -947,7 +947,7 @@ elastic.search.configuration = { \
 	"replicas" : 1, \
 	"transportClientConfig" : { \
 		"clusterName" : "MyESCluster", \
-		"esServerUrl" : "http://escluster1"
+		"esServerUrl" : "escluster1" \
 	} \
 }
 ```
