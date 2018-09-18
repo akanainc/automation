@@ -1,5 +1,19 @@
 # Changes
 
+v.8.4.25
+
+* Fix to ignore Oracle DB exception when a similar index already exists.
+
+* Added the properties to support the OAuth Client Policy
+```properties
+# com.akana.policy.oauth.client
+com.akana.oauth.client.server.config.cacheExpirationTime=240
+com.akana.oauth.client.server.config.cacheIdleTime=240
+com.akana.oauth.client.server.config.cacheInvalidateTime=60
+```
+
+* Added a fix to properly update the admin URL
+
 v8.4.24
 
 * Changed the cluster nodes to not replace all nodes.
