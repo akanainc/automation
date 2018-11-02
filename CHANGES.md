@@ -1,5 +1,11 @@
 # Changes
 
+v8.4.27
+
+* Added a fix to check if the listeners alias password is encoded.  If it is, it needs to be decrypted, prior to pushing the cert to the PM workbench.
+
+---
+
 v.8.4.25
 
 * Fix to ignore Oracle DB exception when a similar index already exists.
@@ -25,6 +31,8 @@ v8.4.24
 v8.4.23
 
 * Fixed uploading outbounding certificates
+
+---
 
 v8.4.21
 
