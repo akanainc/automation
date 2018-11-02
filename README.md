@@ -483,7 +483,7 @@ container property files.
 
 For a secured container, include the secured flag as true.  Two different JAVA keystores are required for a secure container.  The container keystore `container.secure.keystore` contains the container private key, the second keystore `container.secure.trusted.keystore` contains the trusted certificates for all the containers and listeners in the environment.  If the container identity certificate has a different password then the container keystore, provide the property `container.secure.alias.password`.  At the same time, the `com.soa.security` category will be appropriately updated and the crl flag will be set to false in the `com.soa.crl` category.
 
-Only container required fields are needed in a properties file.  The automation allows property fields to be omitted.  
+Only container required fields are needed in a properties file.  The automation allows property fields to be omitted. If a property filename has "default" in it, the property file will be skipped by automation.  
 The following lists what is required based off of the container type:
 
 + All Containers
@@ -564,7 +564,7 @@ When deploying a standalone CM container that has admin access, it is recommende
     pm.context.path=
 ```
 
-Automation supports building route files.  For more information on route files see https://support.soa.com/support/index.php?_m=knowledgebase&_a=viewarticle&kbarticleid=607.  
+Automation supports building route files.  For more information on route files see https://library.roguewave.com/display/MAIN/Routing+Network+Director+through+the+F5.  
 In the container property file, all route files are defined in a the property `route.definitions=`.  An example of an ND routing back through a clustered PM.  The property is configured like `filename;pattern;url`, each route file definition would be seperated by a comma.  Route files can also be added with providing the --deployFiles command switch.
 
 Managing cluster support.  Automation will automatically register an ND container into a Cluster that is created in PM.  If a cluster name is provided and the cluster doesn't exist, the cluster will first be created.  Once the cluster is
